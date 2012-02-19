@@ -284,8 +284,8 @@ message () {
 	fi
 
 	if [ $espeak == 1 ]; then
-		$speak "$message" > $tmpDir/message.wav
-		$alsaplayer $tmpDir/message.wav 2> /dev/null 1> /dev/null
+		$speak "$message" > $tempDir/message.wav
+		$alsaplayer $tempDir/message.wav 2> /dev/null 1> /dev/null
 	fi
 }
 
@@ -421,8 +421,8 @@ announce () {
 		echo now playing $stype music file : `echo "$song" | fromHtmlEnc`
 	fi
 	if [ $espeak == 1 ]; then
-		$speak "now playing $stype music file : `echo "$song" | fromHtmlEnc | basename2 -`" > $tmpDir/message.wav
-		$alsaplayer $tmpDir/message.wav 2> /dev/null 1> /dev/null &
+		$speak "now playing $stype music file : `echo "$song" | fromHtmlEnc | basename2 -`" > $tempDir/message.wav
+		$alsaplayer $tempDir/message.wav 2> /dev/null 1> /dev/null &
 	fi
 }
 
