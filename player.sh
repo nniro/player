@@ -284,6 +284,10 @@ message () {
 	fi
 
 	if [ $espeak == 1 ]; then
+		if [ ! -e $tempDir ]; then
+			mkdir $tempDir
+		fi
+
 		$speak "$message" > $tempDir/message.wav
 		$alsaplayer $tempDir/message.wav 2> /dev/null 1> /dev/null
 	fi
