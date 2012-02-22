@@ -410,7 +410,7 @@ play_digital () {
 
 play_mod () {
 	local song=`echo $1 | fromHtmlEnc`
-	$mikmod "$song"
+	$mikmod "$song" > /dev/null 2> /dev/null
 }
 
 play_video () {
