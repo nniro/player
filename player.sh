@@ -514,10 +514,10 @@ playPlaylist () {
 		declare -a playlist=("$@")
 	fi
 
-	play_song "${playlist[@]}"
+	play_song ${playlist[@]}
 
 	if [ $loop = 1 ]; then
-		playPlaylist "${playlist[@]}"
+		playPlaylist ${playlist[@]}
 	fi
 }
 
