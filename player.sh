@@ -10,7 +10,7 @@ mplayer="mplayer -vo null -quiet"
 mikmod="mikmod -p 0 -q"
 
 # speech synthesizer program
-speak="sh $HOME/bin/speak.sh"
+speak="sh $HOME/bin/speak.sh --stdout"
 
 #
 
@@ -421,13 +421,8 @@ play_video () {
 announce () {
 	local song=$1
 	local stype=$2
-	if [ $quiet == 0 ]; then
-		echo now playing $stype music file : `echo "$song" | fromHtmlEnc`
-	fi
-	if [ $espeak == 1 ]; then
-		$speak "now playing $stype music file : `echo "$song" | fromHtmlEnc | basename2 -`" > $tempDir/message.wav
-		$alsaplayer $tempDir/message.wav 2> /dev/null 1> /dev/null &
-	fi
+
+	message "now playing $stype music file : `echo \"$song\" | fromHtmlEnc | basename2 -`" $quiet &
 }
 
 # pretty path for compressed directories (harmless for other formats)
