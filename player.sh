@@ -467,7 +467,7 @@ play_song () {
 			fi
 		;;
 
-		flv|wma)
+		flv|wma|mp4)
 			if [ $compressed -eq 1 ]; then
 				message "compressed file format not supported" $quiet
 			else
@@ -485,7 +485,7 @@ play_song () {
 			fi
 		;;
 
-		mod|xm|s3m|it|mtm)
+		mod|xm|s3m|it|mtm|uni)
 			# supports compressed files transparently
 			announce "$songPath" "amiga"
 			play_mod "$song"
