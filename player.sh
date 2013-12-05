@@ -1,7 +1,8 @@
 #! /bin/bash
 
 # midi music player
-timidity="timidity"
+#timidity="timidity"
+timidity="aplaymidi"
 # video/movie player
 mplayer="mplayer -vo null -quiet"
 # amiga modules music player
