@@ -326,6 +326,10 @@ while [ 1 -eq 1 ]; do
 			quiet=1
 		;;
 
+		-*|--*)
+			echo "Ignoring Invalid Option \`$1'"
+		;;
+
 		*)
 			if [ $recurse == 1 ]; then
 				music="${music} `preparePath \"$1\" 1`"
