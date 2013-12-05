@@ -115,8 +115,6 @@ loopFilesComp () {
 		local parent_dir="./"
 	fi
 
-	#echo $parent_dir
-
 	# second step : filter all the files and directories not in the parent
 	#		directory if recursion is not activated.
 	files2=""
@@ -139,7 +137,6 @@ getComprFile () {
 		mkdir $tempDir
 	fi
 
-	#echo $1
 	declare -a comp=(`echo $1 | sed 's/^@// ; s/@/ /g'`)
 
 	if [ "${comp[2]}" != "1" ] && [ "`echo ${comp[2]} | sed 's/.*\/$/1/'`" == "1" ]; then
@@ -198,19 +195,6 @@ getComprFile () {
 	echo ${tempDir}/${comp[2]}
 }
 
-#houba=`loopFilesComp 0 $1`
-#echo $houba
-
-#for i in $houba; do
-#	nFile=`getComprFile "$i"`
-#	if [ -e "$nFile" ]; then
-#		echo $nFile
-#		rm -f $nFile
-#	fi
-#done
-
-#exit 0
-
 loopFiles () {
 	local _result=""
 	local recursive=$1
@@ -221,8 +205,6 @@ loopFiles () {
 		if [ "$1" == "" ]; then
 			break
 		fi
-
-		#echo $1
 
 		# fixes files containing spaces until they
 		# are later converted to %20
@@ -262,14 +244,6 @@ preparePath () {
 	echo $result
 }
 
-#preparePath "$1"
-
-#houba=`preparePath $1`
-
-#echo Houba : $houba
-
-#exit 0
-
 music=""
 shuffle=0
 loop=0
@@ -304,14 +278,6 @@ while [ 1 -eq 1 ]; do
 		;;
 
 		*)
-#			if [ -f $1 ] && [ -r $1 ] ; then
-#				# we change any in file spaces to %20 
-#				# to prepare the file entries to be used
-#				music="${music} `echo $1 | sed 's/ /%20/g'`"
-#			elif [ -d $1 ]; then
-#				ls ${1}/*.*
-#				echo $1
-#			fi
 			if [ $recurse == 1 ]; then
 				music="${music} `preparePath \"$1\" 1`"
 			else
@@ -321,7 +287,6 @@ while [ 1 -eq 1 ]; do
 	esac
 
 	shift 1
-#	break
 done
 
 if [ "$music" == "" ]; then
@@ -329,7 +294,6 @@ if [ "$music" == "" ]; then
 	exit 0
 fi
 
-#echo $music
 
 #exit 0
 
@@ -407,9 +371,6 @@ play_song () {
 			local compressed=1
 			local song1=`echo $song | sed 's/\(.*\)\(\.gz\|\.bz2\|\.zip\)$/\1/'`
 		;;
-
-		#xz)
-		#;;
 
 		*) local song1=$song
 		;;
@@ -492,8 +453,6 @@ playPlaylist () {
 	else
 		declare -a playlist=("$@")
 	fi
-
-	#echo ${playlist[@]}
 
 	play_song "${playlist[@]}"
 
