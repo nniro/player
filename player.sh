@@ -499,6 +499,11 @@ play_song () {
 }
 
 playPlaylist () {
+	if [ "`echo $@ | sed 's/^ *$//'`" == "" ]; then
+		message "Playlist is empty, maybe you forgot to use the recursive (-r or --recursive) argument?" $quiet
+		exit 1
+	fi
+
 	if [ $shuffle == 1 ]; then
 		declare -a playlist=(`randomnizePlaylist "$@"`)
 	else
