@@ -37,6 +37,9 @@ fixArg () {
 	echo $result
 }
 set -- `fixArg "$@"`
+
+tempDir="/tmp/player.sh"
+
 showHelp () {
 	printf "player.sh [OPTIONS] ... [FILES]\n"
 	printf "	High order music player.\n"
@@ -150,9 +153,6 @@ loopFilesComp () {
 
 	echo $files2
 }
-
-
-tempDir="/tmp/player.sh"
 
 getComprFile () {
 	if [ ! -e $tempDir ]; then
