@@ -23,6 +23,20 @@ sed -e "s/ /%20/g; s/\!/%21/g; s/\"/%22/g; s/#/%23/g; s/\\$/%24/g; s/&/%26/g; s/
 fromHtmlEnc () {
 sed -e "s/%20/ /g; s/%21/\!/g; s/%22/\"/g; s/%23/#/g; s/%24/\\$/g; s/%26/&/g; s/%27/'/g; s/%28/(/g; s/%29/)/g; s/%2a/\*/g; s/%2b/+/g; s/%2c/\,/g; s/%2e/\./g; s/%2f/\//g;" -e "s/%3a/:/g; s/%3b/;/g; s/%3c/</g; s/%3e/>/g; s/%3f/?/g;" -e "s/%5b/\[/g; s/%5c/\\\\/g; s/%5d/\]/g; s/%5e/\^/g; s/%5f/_/g; s/%60/\`/g;" -e "s/%7b/{/g; s/%7c/|/g; s/%7d/}/g; s/%7e/~/g; s/%7f//g;"
 }
+
+# this adds support for the standard GNU argument system where
+# long options like --test need the character `=' to pass values.
+# and also replaces spaces by %20
+fixArg () {
+	local result=""
+	while [ "$1" != "" ]; do
+		tmp=""
+		result="$result `echo \"$1\" | toHtmlEnc | sed 's/=/ /g'`"
+		shift 1
+	done
+	echo $result
+}
+set -- `fixArg "$@"`
 showHelp () {
 	printf "player.sh [OPTIONS] ... [FILES]\n"
 	printf "	High order music player.\n"
@@ -38,42 +52,44 @@ showHelp () {
 
 # loop files in a compressed file
 loopFilesComp () {
-	recursive=$1
+	local recursive=$1
 
 	shift 1
 
-	files=""
-	path=""
-	comprF=""
-	case `echo $1 | sed 's/.*\(tar.gz\|tar.bz2\|tar.xz\|zip\|rar\)/\1/'` in
+	local file="`echo $1 | fromHtmlEnc`"
+
+	local files=""
+	local path=""
+	local comprF=""
+	case `echo $1 | fromHtmlEnc | sed 's/.*\(tar.gz\|tar.bz2\|tar.xz\|zip\|rar\)/\1/'` in
 		tar.gz) #echo a bzip compressed file
-			files=`gzip -cd $1 | tar -t | sed 's/ /%20/g'`
-			path=`dirname $1`
-			comprF=`basename $1`
+			local files=`gzip -cd "$file" | tar -t | toHtmlEnc`
+			local path=`dirname "$file"`
+			local comprF=`basename "$file"`
 		;;
 
 		tar.bz2) #echo a bzip2 compressed file
-			files=`bzip2 -cdk $1 | tar -t | sed 's/ /%20/g'`
-			path=`dirname $1`
-			comprF=`basename $1`
+			local files=`bzip2 -cdk "$file" | tar -t | toHtmlEnc`
+			local path=`dirname "$file"`
+			local comprF=`basename "$file"`
 		;;
 
 		tar.xz) #echo a xz compressed file
-			files=`xz -cdk $1 | tar -t | sed 's/ /%20/g'`
-			path=`dirname $1`
-			comprF=`basename $1`
+			local files=`xz -cdk "$file" | tar -t | toHtmlEnc`
+			local path=`dirname "$file"`
+			local comprF=`basename "$file"`
 		;;
 
 		zip) #echo a zip compressed file
-			files=`unzip -qq -l $1 | sed -e 's/^ *[^ ]* *[^ ]* *[^ ]* *//' -e 's/ /%20/g'`
-			path=`dirname $1`
-			comprF=`basename $1`
+			local files=`unzip -qq -l "$file" | sed -e 's/^ *[^ ]* *[^ ]* *[^ ]* *//' | toHtmlEnc`
+			local path=`dirname "$file"`
+			local comprF=`basename "$file"`
 		;;
 
 		rar) #echo a rar compressed file
-			files=`unrar lb $1 | sed 's/ /%20/g'`
-			path=`dirname $1`
-			comprF=`basename $1`
+			local files=`unrar lb "$file" | toHtmlEnc`
+			local path=`dirname "$file"`
+			local comprF=`basename "$file"`
 		;;
 
 		*) #echo not a compressed directory file
@@ -81,24 +97,22 @@ loopFilesComp () {
 		;;
 	esac
 
+	local path="`echo $path | toHtmlEnc`"
+	local comprF="`echo $comprF | toHtmlEnc`"
+
 	# first step : filter only directories
 	#echo $files | sed '/.*\/$/ \! d'
-	parent_dir=""
-	for i in $files; do
-		parent_dir="$parent_dir `echo $i | sed '/.*\/$/! d'`"
-		break
-	done
+	local parent_dir="./"
 
 	# delete all directories (the content of the dirs are kept though)
-	tmp=""
+	local tmp=""
 	for i in $files; do
-		#parent_dir="$parent_dir `echo $i | sed '/.*\/$/! d'`"
-		tmp="$tmp `echo $i | sed '/.*\/$/ d'`"
+		local tmp="$tmp `echo $i | sed \"/.*\`echo / | toHtmlEnc\`$/ d\"`"
 	done
-	files="$tmp"
+	local files="$tmp"
 
 	if [ "$parent_dir" == " " ] || [ "$parent_dir" == "" ]; then
-		parent_dir="./"
+		local parent_dir="./"
 	fi
 
 	#echo $parent_dir
@@ -107,11 +121,10 @@ loopFilesComp () {
 	#		directory if recursion is not activated.
 	files2=""
 	for i in $files; do
-		curparrent=`dirname $i`
-		#echo $curparrent -- \"$parent_dir\"
-		if [ "$recursive" == "1" ] || [ "${curparrent}/" == $parent_dir ]; then
+		local curparrent="`dirname \"\`echo $i | fromHtmlEnc \`\"`/"
+		if [ "$recursive" == "1" ] || [ "$curparrent" == $parent_dir ]; then
 			#echo "-->" $i
-			files2="$files2 @$path/@$comprF@$i"
+			local files2="$files2 @$path/@$comprF@$i"
 		fi
 	done
 
@@ -134,32 +147,45 @@ getComprFile () {
 		exit 0
 	fi
 
-	opwd=$PWD
+	local opwd=$PWD
+	comp[0]="`echo ${comp[0]} | fromHtmlEnc`"
+	comp[1]="`echo ${comp[1]} | fromHtmlEnc`"
+
+	# handles both relative and absolute paths
+	if [ "${comp[0]:0:1}" == "/" ]; then
+		local base=""
+	else
+		local base="$opwd/"
+	fi
 
 	cd $tempDir
 
-	tmp="`echo ${comp[2]} | sed 's/%20/ /g'`"
+	local tmp="`echo ${comp[2]} | fromHtmlEnc`"
 
 	case `echo ${comp[1]} | sed 's/.*\(tar.gz\|tar.bz2\|tar.xz\|zip\|rar\)/\1/'` in
 		tar.gz) #echo a bzip compressed file
-			tar -zxf $opwd/${comp[0]}${comp[1]} "$tmp"
+			tar -zxf ${base}${comp[0]}"${comp[1]}" "$tmp"
 		;;
 
 		tar.bz2) #echo a bzip2 compressed file
-			tar -jxf $opwd/${comp[0]}${comp[1]} "$tmp"
+			tar -jxf ${base}${comp[0]}"${comp[1]}" "$tmp"
 		;;
 
 		tar.xz) #echo a xz compressed file
-			xz -cdk $opwd/${comp[0]}${comp[1]} | tar /dev/stdin "$tmp"
+			xz -cdk ${base}${comp[0]}"${comp[1]}" | tar /dev/stdin "$tmp"
 		;;
 
 		zip) #echo a zip compressed file
-			unzip -qq $opwd/${comp[0]}${comp[1]} "$tmp"
+			# fixes the `[' character for which unzip is
+			# particularly picky (note : only `[', not `]')
+			local tmp="`echo $tmp | sed 's/\[/\\\[/g'`"
+			unzip -qq ${base}${comp[0]}"${comp[1]}" "$tmp"
 		;;
 
 		rar) #echo a rar compressed file
+			# special format, files are not preceded by ./
 			tmp2="`echo $tmp | sed 's/^\.\///'`"
-			unrar x $opwd/${comp[0]}${comp[1]} "$tmp2" > /dev/null 2> /dev/null
+			unrar x ${base}${comp[0]}"${comp[1]}" "$tmp2" > /dev/null 2> /dev/null
 		;;
 
 		*) #echo not a compressed directory file
@@ -186,8 +212,8 @@ getComprFile () {
 #exit 0
 
 loopFiles () {
-	_result=""
-	recursive=$1
+	local _result=""
+	local recursive=$1
 
 	shift 1
 
@@ -200,12 +226,12 @@ loopFiles () {
 
 		# fixes files containing spaces until they
 		# are later converted to %20
-		processed=`echo "$1" | sed 's/\([^\\]\) /\1\\ /g'`
+		local processed=`echo "$1" | sed 's/\([^\\]\) /\1\\ /g'`
 
 		if [ "$recursive" == "1" ]; then
-			_result="$_result `preparePath \"$processed\" 1`"
+			local _result="$_result `preparePath \"$processed\" 1`"
 		else
-			_result="$_result `preparePath \"$processed\" 2`"
+			local _result="$_result `preparePath \"$processed\" 2`"
 		fi
 
 		shift 1
@@ -215,20 +241,20 @@ loopFiles () {
 }
 
 preparePath () {
-	case `echo $1 | sed 's/.*\(tar.gz\|tar.bz2\|tar.xz\|zip\|rar\)/\1/'` in
+	local tmp="`echo $1 | fromHtmlEnc`"
+	case `echo $tmp | sed 's/.*\(tar.gz\|tar.bz2\|tar.xz\|zip\|rar\)/\1/'` in
 
 		tar.gz|tar.bz2|tar.xz|zip|rar)
-			result=`loopFilesComp "$2" "$1"`
+			local result=`loopFilesComp "$2" "$1"`
 		;;
 
 		*)
-			if [ -f "$1" ] && [ -r "$1" ] ; then
 				# we change any in file spaces to %20 
 				# to prepare the file entries to be used
-				result=`echo $1 | sed 's/ /%20/g'`
-			elif [ -d "$1" ] && [ "$2" != "2" ]; then
-				result=`loopFiles "$2" "${1}"/*`
-			else result="`echo $1 | sed 's/ /%20/g'`"
+			if [ -d "$tmp" ] && [ "$2" != "2" ]; then
+				local result=`loopFiles "$2" $tmp/*`
+			elif [ ! -d "$tmp" ]; then
+			       	local result="`echo $1 | toHtmlEnc`"
 			fi
 		;;
 	esac
@@ -331,36 +357,32 @@ randomnizePlaylist () {
 				result[$pick]=${array[$i]}
 				break
 		       fi
-			pick=$(((pick + 1) % $len))
+			local pick=$(((pick + 1) % $len))
 		done
 
-		i=$((i + 1))
+		local i=$((i + 1))
 	done
 
 	echo ${result[@]}
 }
 
 play_midi () {
-	song=`echo $1 | sed -e 's/%20/\\ /g'`
-	#timidity "$song" > /dev/null 2> /dev/null
+	local song=`echo $1 | fromHtmlEnc`
 	$timidity "$song" > /dev/null 2> /dev/null
 }
 
 play_digital () {
-	song=`echo $1 | sed -e 's/%20/\\ /g'`
-	#radio -q "$song"
+	local song=`echo $1 | fromHtmlEnc`
 	$alsaplayer "$song" > /dev/null 2> /dev/null
 }
 
 play_mod () {
-	song=`echo $1 | sed -e 's/%20/\\ /g'`
-	#mikmod -p 0 -q "$song"
+	local song=`echo $1 | fromHtmlEnc`
 	$mikmod "$song"
 }
 
 play_video () {
-	song=`echo $1 | sed -e 's/%20/\\ /g'`
-	#mplayer -vo null -quiet "$song" 2> /dev/null > /dev/null
+	local song=`echo $1 | fromHtmlEnc`
 	$mplayer "$song" > /dev/null 2> /dev/null
 }
 
@@ -368,31 +390,32 @@ play_song () {
 	local song=$1
 	shift 1
 	local list=$@
-	compressed=0
-	inComp=0 # inside a compressed file
+	local songPath=$song
+	local compressed=0
+	local inComp=0 # inside a compressed file
 
 	# compressed directory support :D
 	if [ "$song" != "1" ] && [ "`echo $song | sed 's/^@.*/1/'`" == "1" ]; then
-		inComp=1
-		song=`getComprFile "$song"`
+		local inComp=1
+		local songPath="$song"
+		local song=`getComprFile "$song"`
 	fi
 
 	# check for compression extention
 	case `echo $song | sed 's/[^\.]*\.//g'` in
 		gz|bz2|zip)
-			compressed=1
-			song1=`echo $song | sed 's/\(.*\)\(\.gz\|\.bz2\|\.zip\)$/\1/'`
+			local compressed=1
+			local song1=`echo $song | sed 's/\(.*\)\(\.gz\|\.bz2\|\.zip\)$/\1/'`
 		;;
 
 		#xz)
 		#;;
 
-		*)
-			song1=$song
+		*) local song1=$song
 		;;
 	esac
 
-	case `echo $song1 | sed 's/[^\.]*\.//g' | sed 's/\(.*\)/\L\1\E/'` in
+	case `echo $song1 | fromHtmlEnc | sed 's/[^\.]*\.//g' | sed 's/\(.*\)/\L\1\E/'` in
 		mp3|ogg|wav)
 			if [ $compressed -eq 1 ]; then
 				echo compressed file format not supported
@@ -457,7 +480,7 @@ play_song () {
 	esac
 
 	if [ $inComp == 1 ]; then
-		rm -f "`echo $song | sed 's/%20/ /g'`"
+		rm -f "`echo $song | fromHtmlEnc`"
 	fi
 
 	[ ! "$list" == "" ] && play_song $list
