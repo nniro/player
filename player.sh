@@ -1,13 +1,15 @@
 #! /bin/bash
 
-# digital (mp3/ogg/wav) music player
-alsaplayer="alsaplayer -o jack -i text -q"
 # midi music player
 timidity="timidity"
 # video/movie player
 mplayer="mplayer -vo null -quiet"
 # amiga modules music player
 mikmod="mikmod -p 0 -q"
+# digital (mp3/ogg/wav) music player
+#alsaplayer="alsaplayer -i text -q"
+alsaplayer=$mplayer
+
 
 # speech synthesizer program
 speak="sh $HOME/bin/speak.sh --stdout"
