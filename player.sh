@@ -114,7 +114,7 @@ loopFilesComp () {
 		;;
 
 		rar) #echo a rar compressed file
-			local files=`unrar lb "$file" | toHtmlEnc`
+			local files=`unrar vb "$file" | toHtmlEnc`
 			local path=`dirname "$file"`
 			local comprF=`basename "$file"`
 		;;
