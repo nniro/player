@@ -168,7 +168,7 @@ getComprFile () {
 		exit 0
 	fi
 
-	local opwd=$PWD
+	local opwd="$PWD"
 	comp[0]="`echo ${comp[0]} | fromHtmlEnc`"
 	comp[1]="`echo ${comp[1]} | fromHtmlEnc`"
 
@@ -185,28 +185,28 @@ getComprFile () {
 
 	case `echo ${comp[1]} | sed 's/.*\(tar.gz\|tar.bz2\|tar.xz\|zip\|rar\)/\1/'` in
 		tar.gz) #echo a bzip compressed file
-			tar -zxf ${base}${comp[0]}"${comp[1]}" "$tmp"
+			tar -zxf "${base}${comp[0]}${comp[1]}" "$tmp"
 		;;
 
 		tar.bz2) #echo a bzip2 compressed file
-			tar -jxf ${base}${comp[0]}"${comp[1]}" "$tmp"
+			tar -jxf "${base}${comp[0]}${comp[1]}" "$tmp"
 		;;
 
 		tar.xz) #echo a xz compressed file
-			xz -cdk ${base}${comp[0]}"${comp[1]}" | tar /dev/stdin "$tmp"
+			xz -cdk "${base}${comp[0]}${comp[1]}" | tar -xf /dev/stdin "$tmp"
 		;;
 
 		zip) #echo a zip compressed file
 			# fixes the `[' character for which unzip is
 			# particularly picky (note : only `[', not `]')
 			local tmp="`echo $tmp | sed 's/\[/\\\[/g'`"
-			unzip -qq ${base}${comp[0]}"${comp[1]}" "$tmp"
+			unzip -qq "${base}${comp[0]}${comp[1]}" "$tmp"
 		;;
 
 		rar) #echo a rar compressed file
 			# special format, files are not preceded by ./
 			tmp2="`echo $tmp | sed 's/^\.\///'`"
-			unrar x ${base}${comp[0]}"${comp[1]}" "$tmp2" > /dev/null 2> /dev/null
+			unrar x "${base}${comp[0]}${comp[1]}" "$tmp2" > /dev/null 2> /dev/null
 		;;
 
 		*) #echo not a compressed directory file
@@ -214,7 +214,7 @@ getComprFile () {
 		;;
 	esac
 
-	cd $opwd
+	cd "$opwd"
 
 	echo ${tempDir}/${comp[2]}
 }
