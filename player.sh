@@ -40,13 +40,27 @@ set -- `fixArg "$@"`
 showHelp () {
 	printf "player.sh [OPTIONS] ... [FILES]\n"
 	printf "	High order music player.\n"
-	printf "	plays various music files transparently.\n"
+	printf "	Plays various music files transparently.\n"
+	printf "	Includes compressed directories support and recursion.\n"
 	echo
 	printf "	-h,--help	This help\n"
 	printf "	-s,--shuffle	shuffle the playlist\n"
 	printf "	-l,--loop	loops the playlist\n"
 	printf "	-r,--recursive	recursively handle directories\n"
 	printf "	-y,--speak	use eSpeak to transmit messages\n"
+	echo
+	printf "	A special format can be used to access specific\n"
+	printf "	files inside compressed files.\n"
+	echo
+	printf "	Here's the format :\n"
+	printf "	@<PATH>@<COMPRESSED FILE>@<INSIDER FILE>\n"
+	echo
+	printf "	PATH :	paths, either absolute or relative, use \`./'\n"
+	printf "		for the current directory (mandatory).\n"
+	printf "	INSIDER FILE :	Full path of the file inside the\n"
+	printf "			compressed file.\n"
+	printf "	NOTE :	for doing spaces, use \`\ '.\n"
+	printf "		single and double quotes are not supported.\n"
 	echo
 }
 
