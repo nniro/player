@@ -51,6 +51,7 @@ showHelp () {
 	printf "	-l,--loop	loops the playlist\n"
 	printf "	-r,--recursive	recursively handle directories\n"
 	printf "	-y,--speak	use eSpeak to transmit messages\n"
+	printf "	-q,--quiet	quiet mode\n"
 	echo
 	printf "	A special format can be used to access specific\n"
 	printf "	files inside compressed files.\n"
@@ -271,11 +272,12 @@ shuffle=0
 loop=0
 recurse=0
 espeak=0
+quiet=0
 
 message () {
 	local message=$1
 	local noOutput=$2
-	if [ "$noOutput" == "" ]; then
+	if [ $quiet == 0 ] || [ "$noOutput" == "" ]; then
 		echo $message
 	fi
 
@@ -313,6 +315,10 @@ while [ 1 -eq 1 ]; do
 			espeak=1
 		;;
 
+		-q|--quiet)
+			quiet=1
+		;;
+
 		*)
 			if [ $recurse == 1 ]; then
 				music="${music} `preparePath \"$1\" 1`"
@@ -334,7 +340,10 @@ fi
 #exit 0
 
 progExit () {
-	echo "Exiting player.sh"
+	if [ $quiet == 0 ]; then
+		echo "Exiting player.sh"
+	fi
+
 	if [ -e $tempDir ]; then
 		rm -Rf $tempDir
 	fi
@@ -389,8 +398,9 @@ play_video () {
 announce () {
 	local song=$1
 	local stype=$2
-
-	echo now playing $stype music file : `echo "$song" | fromHtmlEnc`
+	if [ $quiet == 0 ]; then
+		echo now playing $stype music file : `echo "$song" | fromHtmlEnc`
+	fi
 	if [ $espeak == 1 ]; then
 		$speak "now playing $stype music file : `echo "$song" | fromHtmlEnc | basename2 -`" > $tmpDir/message.wav
 		$alsaplayer $tmpDir/message.wav 2> /dev/null 1> /dev/null &
@@ -431,7 +441,7 @@ play_song () {
 	case `echo $song1 | fromHtmlEnc | sed 's/[^\.]*\.//g' | sed 's/\(.*\)/\L\1\E/'` in
 		mp3|ogg|wav)
 			if [ $compressed -eq 1 ]; then
-				message "compressed file format not supported"
+				message "compressed file format not supported" $quiet
 			else
 				announce "$songPath" "digital"
 				play_digital "$song"
@@ -440,7 +450,7 @@ play_song () {
 
 		flv|wma)
 			if [ $compressed -eq 1 ]; then
-				message "compressed file format not supported"
+				message "compressed file format not supported" $quiet
 			else
 				announce "$songPath" "video"
 				play_video "$song"
@@ -449,7 +459,7 @@ play_song () {
 
 		mid|midi)
 			if [ $compressed -eq 1 ]; then
-				message "compressed file format not supported"
+				message "compressed file format not supported" $quiet
 			else
 				announce "$songPath" "midi"
 				play_midi "$song"
@@ -463,7 +473,7 @@ play_song () {
 		;;
 
 		*)
-			message "unhandled music format : `basename $songPath | fromHtmlEnc`"
+			message "unhandled music format : `basename $songPath | fromHtmlEnc`" $quiet
 		;;
 	esac
 
