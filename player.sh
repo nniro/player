@@ -331,6 +331,11 @@ while [ 1 -eq 1 ]; do
 		;;
 
 		*)
+			if [ "$saidPreparingPlaylist" == "" ]; then
+				message "Preparing playlist..." $quiet
+				saidPreparingPlaylist=1
+			fi
+
 			if [ $recurse == 1 ]; then
 				music="${music} `preparePath \"$1\" 1`"
 			else
