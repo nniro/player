@@ -397,6 +397,11 @@ announce () {
 	fi
 }
 
+# pretty path for compressed directories (harmless for other formats)
+prettyPath () {
+	echo `echo $1 | sed 's/^@\(.*\)@\(.*\)@\(.*\)$/\1\2\/\3/'`
+}
+
 play_song () {
 	local song=$1
 	shift 1
@@ -408,7 +413,7 @@ play_song () {
 	# compressed directory support :D
 	if [ "$song" != "1" ] && [ "`echo $song | sed 's/^@.*/1/'`" == "1" ]; then
 		local inComp=1
-		local songPath="$song"
+		local songPath=`prettyPath "$song"`
 		local song=`getComprFile "$song"`
 	fi
 
