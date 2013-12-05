@@ -51,6 +51,7 @@ showHelp () {
 	printf "	-l,--loop	loops the playlist\n"
 	printf "	-r,--recursive	recursively handle directories\n"
 	printf "	-y,--speak	use eSpeak to transmit messages\n"
+	printf "	-f,--filter	regex for files to exclude\n"
 	printf "	-q,--quiet	quiet mode\n"
 	echo
 	printf "	A special format can be used to access specific\n"
@@ -272,6 +273,7 @@ shuffle=0
 loop=0
 recurse=0
 espeak=0
+filter=""
 quiet=0
 
 message () {
@@ -315,6 +317,11 @@ while [ 1 -eq 1 ]; do
 			espeak=1
 		;;
 
+		-f|--filter)
+			shift 1
+			filter=`echo $1 | fromHtmlEnc`
+		;;
+
 		-q|--quiet)
 			quiet=1
 		;;
@@ -337,6 +344,9 @@ if [ "$music" == "" ]; then
 fi
 
 
+if [ "$filter" != "" ]; then
+	music=`echo $music | sed 's/ /\n/g' | sed -n "/$filter/! p"`
+fi
 #exit 0
 
 progExit () {
