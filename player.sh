@@ -496,7 +496,11 @@ play_song () {
 	esac
 
 	if [ $inComp == 1 ]; then
-		rm -f "`echo $song | fromHtmlEnc`"
+		if [ -d "`echo $song | fromHtmlEnc`" ]; then
+			rm -Rf "`echo $song | fromHtmlEnc`"
+		else
+			rm -f "`echo $song | fromHtmlEnc`"
+		fi
 	fi
 
 	[ ! "$list" == "" ] && play_song $list
