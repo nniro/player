@@ -64,6 +64,14 @@ showHelp () {
 	echo
 }
 
+basename2 () {
+	local input=$1
+	if [ "$input" == "-" ]; then
+		input=`cat /dev/stdin`
+	fi
+	basename "$input"
+}
+
 # loop files in a compressed file
 loopFilesComp () {
 	local recursive=$1
@@ -263,6 +271,20 @@ shuffle=0
 loop=0
 recurse=0
 espeak=0
+
+message () {
+	local message=$1
+	local noOutput=$2
+	if [ "$noOutput" == "" ]; then
+		echo $message
+	fi
+
+	if [ $espeak == 1 ]; then
+		$speak "$message" > $tmpDir/message.wav
+		$alsaplayer $tmpDir/message.wav 2> /dev/null 1> /dev/null
+	fi
+}
+
 #create music list from input
 while [ 1 -eq 1 ]; do
 	if [ "$1" == "" ]; then
@@ -364,6 +386,17 @@ play_video () {
 	$mplayer "$song" > /dev/null 2> /dev/null
 }
 
+announce () {
+	local song=$1
+	local stype=$2
+
+	echo now playing $stype music file : `echo "$song" | fromHtmlEnc`
+	if [ $espeak == 1 ]; then
+		$speak "now playing $stype music file : `echo "$song" | fromHtmlEnc | basename2 -`" > $tmpDir/message.wav
+		$alsaplayer $tmpDir/message.wav 2> /dev/null 1> /dev/null &
+	fi
+}
+
 play_song () {
 	local song=$1
 	shift 1
@@ -393,64 +426,39 @@ play_song () {
 	case `echo $song1 | fromHtmlEnc | sed 's/[^\.]*\.//g' | sed 's/\(.*\)/\L\1\E/'` in
 		mp3|ogg|wav)
 			if [ $compressed -eq 1 ]; then
-				echo compressed file format not supported
-				if [ $espeak == 1 ]; then
-					$speak "compressed file format not supported" &
-				fi
+				message "compressed file format not supported"
 			else
-				echo now playing digital music file : $song
-				if [ $espeak == 1 ]; then
-					$speak "now playing digital music file : `basename $song | sed 's/%20/ /g'`" &
-				fi
+				announce "$songPath" "digital"
 				play_digital "$song"
 			fi
 		;;
 
 		flv|wma)
 			if [ $compressed -eq 1 ]; then
-				echo compressed file format not supported
-				if [ $espeak == 1 ]; then
-					$speak "compressed file format not supported" &
-				fi
+				message "compressed file format not supported"
 			else
-				echo now playing video music file : $song
-				if [ $espeak == 1 ]; then
-					$speak "now playing video music file : `basename $song | sed 's/%20/ /g'`" &
-				fi
+				announce "$songPath" "video"
 				play_video "$song"
 			fi
 		;;
 
 		mid|midi)
 			if [ $compressed -eq 1 ]; then
-				echo compressed file format not supported
-				if [ $espeak == 1 ]; then
-					$speak "compressed file format not supported" &
-				fi
+				message "compressed file format not supported"
 			else
-				echo now playing midi music file : $song
-				if [ $espeak == 1 ]; then
-					$speak "now playing midi music file : `basename $song | sed 's/%20/ /g'`" &
-				fi
-
+				announce "$songPath" "midi"
 				play_midi "$song"
 			fi
 		;;
 
 		mod|xm|s3m|it|mtm)
 			# supports compressed files transparently
-			echo now playing amiga music file : $song
-			if [ $espeak == 1 ]; then
-				$speak "now playing amiga music file : `basename $song | sed 's/%20/ /g'`" &
-			fi
+			announce "$songPath" "amiga"
 			play_mod "$song"
 		;;
 
 		*)
-			echo unhandled music format : $song
-			if [ $espeak == 1 ]; then
-				$speak "unhandled music format : `basename $song | sed 's/%20/ /g'`"
-			fi
+			message "unhandled music format : `basename $songPath | fromHtmlEnc`"
 		;;
 	esac
 
