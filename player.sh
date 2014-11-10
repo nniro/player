@@ -252,7 +252,7 @@ loopFilesComp () {
 	#for i in "$files"; do
 		#local curparrent="`dirname \"\`echo $i | fromHtmlEnc \`\"`/"
 		# echo $i -- $curparrent -- \"$parent_dir\"
-		#if [[ "$recursive" == "1" ] || [[ "$curparrent" == $parent_dir ]]; then
+		#if [[ "$recursive" == "1" ]] || [[ "$curparrent" == $parent_dir ]]; then
 			#echo "-->" $i
 #			if [[ "$files2" != "" ]]; then
 #				local files2="$files2 @$cPath/@$comprF@$i"
@@ -731,7 +731,7 @@ play_song () {
 		fi
 	fi
 
-	[ ! ${#list[@]} == 0 ] && play_song ${list[@]}
+	[[ ! ${#list[@]} == 0 ]] && play_song ${list[@]}
 }
 
 playPlaylist () {
