@@ -689,7 +689,7 @@ play_song () {
 	esac
 
 	case `echo $song1 | fromHtmlEnc | sed 's/[^\.]*\.//g' | sed 's/\(.*\)/\L\1\E/'` in
-		mp3|ogg|wav)
+		mp3|ogg|wav|flac)
 			if [[ $compressed -eq 1 ]]; then
 				message "compressed file format not supported" $quiet
 			else
