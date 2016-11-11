@@ -275,14 +275,11 @@ loopFilesComp () {
 	#done
 
 	myTuple="`mkTuple \" \" \"$files\"`"
-	[[ $debugging == 1 ]] && echo "convertion tuple : [isTuple? `isTuple $myTuple`] $myTuple" >> $debugPath
-	while [[ "`snd $myTuple`" != "" ]]; do
-		x="`fst $myTuple`"
-		xs="`snd $myTuple`"
+	while [[ "`snd \"$myTuple\"`" != "" ]]; do
+		x="`fst \"$myTuple\"`"
+		xs="`snd \"$myTuple\"`"
 
-		if [[ "$x" == " " ]]; then
-			;
-		else
+		if [[ "$x" != " " ]] && [[ "$x" != "" ]]; then
 			if [[ "$files2" != "" ]]; then
 				local files2="$files2 @$cPath/@$comprF@$x"
 			else
@@ -290,7 +287,7 @@ loopFilesComp () {
 			fi
 		fi
 
-		myTuple="`sep \" \" $xs`"
+		myTuple="`sep \" \" \"$xs\"`"
 		[[ $debugging == 1 ]] && echo "Current tuple : $myTuple" >> $debugPath
 	done
 
