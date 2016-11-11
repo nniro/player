@@ -6,7 +6,8 @@ timidity="aplaymidi -p 17"
 # video/movie player
 mplayer="mplayer -vo null -quiet"
 # amiga modules music player
-mikmod="mikmod -p 0 -q"
+#mikmod="mikmod -p 0 -q"
+mikmod="timidity"
 # digital (mp3/ogg/wav) music player
 #alsaplayer="alsaplayer -i text -q"
 alsaplayer=$mplayer
