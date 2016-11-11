@@ -1,4 +1,4 @@
-#! /bin/zsh --ksharrays
+#! /bin/sh
 
 # midi music player
 #timidity="timidity"
@@ -13,8 +13,20 @@ alsaplayer=$mplayer
 
 debugging=0
 
+case "`readlink -f /proc/$$/exe`" in
+	*zsh)
+		# we need arrays to start at 0 in zsh
+		setopt ksharrays
+	;;
+
+	*)
+	;;
+esac
+
+#echo $SHELL
+
 # this tells us exactly which shell is running this script
-readlink -f /proc/$$/exe
+#readlink -f /proc/$$/exe
 
 function mkTuple() {
 	# using '@' characters to support the content even if they contain commas inside of them
