@@ -367,7 +367,7 @@ loopFiles () {
 
 	shift 1
 
-	local fixedInput="`echo $* | sed -e 's/ //g'`"
+	local fixedInput="`echo $* | sed -e 's/, /,/g'`"
 	local tuple="`sep \",\" \"\$fixedInput\"`"
 	local current=""
 	local rest=""
