@@ -208,6 +208,7 @@ loopFilesComp () {
 		;;
 
 		zip) #echo a zip compressed file
+			[[ $debugging == 1 ]] && echo "archive is zip compressed" >> $debugPath
 			local files="`unzip -qq -l \"$file\" | sed -e 's/^ *[^ ]* *[^ ]* *[^ ]* *//' | toHtmlEnc`"
 			local cPath="`dirname \"$file\"`"
 			local comprF="`basename \"$file\"`"
@@ -276,6 +277,7 @@ loopFilesComp () {
 	#done
 
 	myTuple="`mkTuple \" \" \"$files\"`"
+	[[ $debugging == 1 ]] && echo "convertion tuple : [isTuple? `isTuple \"$myTuple\"`] \"$myTuple\"" >> $debugPath
 	while [[ "`snd \"$myTuple\"`" != "" ]]; do
 		x="`fst \"$myTuple\"`"
 		xs="`snd \"$myTuple\"`"
@@ -289,7 +291,9 @@ loopFilesComp () {
 		fi
 
 		myTuple="`sep \" \" \"$xs\"`"
-		[[ $debugging == 1 ]] && echo "Current tuple : $myTuple" >> $debugPath
+		[[ $debugging == 1 ]] && echo "loop data : x: \"$x\" xs: \"$xs\"" >> $debugPath
+		[[ $debugging == 1 ]] && echo "Current tuple : \"$myTuple\"" >> $debugPath
+		[[ $debugging == 1 ]] && echo "Current files2 result : $files2" >> $debugPath
 	done
 
 	[[ $debugging == 1 ]] && echo "archive conv result : $files2" >> $debugPath
@@ -630,7 +634,11 @@ play_mod () {
 
 play_video () {
 	local song="`echo $1 | fromHtmlEnc`"
-	local cmd="$mplayer \"$song\" > /dev/null 2> /dev/null"
+	if [ $debugging = 0 ]; then
+		local cmd="$mplayer \"$song\" > /dev/null 2> /dev/null"
+	else
+		local cmd="$mplayer \"$song\" >> $debugPath 2>&1"
+	fi
 	#eval $mplayer "$song" > /dev/null 2> /dev/null
 	eval "$cmd"
 }
