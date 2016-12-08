@@ -707,7 +707,7 @@ play_song () {
 			fi
 		;;
 
-		flv|wma|mp4)
+		flv|wma|mp4|webm|mkv)
 			if [[ $compressed -eq 1 ]]; then
 				message "compressed file format not supported" $quiet
 			else
