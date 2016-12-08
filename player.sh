@@ -453,7 +453,7 @@ message () {
 	local message="$1"
 	local noOutput=$2
 	if [[ $quiet == 0 ]] || [[ "$noOutput" == "" ]]; then
-		echo $message
+		echo "$message"
 	fi
 
 	if [[ $espeak == 1 ]]; then
@@ -610,7 +610,7 @@ play_midi () {
 	local song="`echo $1 | fromHtmlEnc`"
 	local cmd="$timidity \"$song\" > /dev/null 2> /dev/null"
 	#eval $timidity "$song" > /dev/null 2> /dev/null
-	eval $cmd
+	eval "$cmd"
 }
 
 play_digital () {
@@ -618,21 +618,21 @@ play_digital () {
 	local cmd="$alsaplayer \"$song\" > /dev/null 2> /dev/null"
 	#eval $alsaplayer "$song" > /dev/null 2> /dev/null
 	[[ $debugging == 1 ]] && echo "Playing song with command : $cmd" >> $debugPath
-	eval $cmd
+	eval "$cmd"
 }
 
 play_mod () {
 	local song="`echo $1 | fromHtmlEnc`"
 	local cmd="$mikmod \"$song\" > /dev/null 2> /dev/null"
 	#eval $mikmod "$song" > /dev/null 2> /dev/null
-	eval $cmd
+	eval "$cmd"
 }
 
 play_video () {
 	local song="`echo $1 | fromHtmlEnc`"
 	local cmd="$mplayer \"$song\" > /dev/null 2> /dev/null"
 	#eval $mplayer "$song" > /dev/null 2> /dev/null
-	eval $cmd
+	eval "$cmd"
 }
 
 announce () {
