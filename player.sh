@@ -570,9 +570,16 @@ fi
 #echo filtered $music
 #exit 0
 
+soundCmdPID=-1
+
 progExit () {
 	if [[ $quiet == 0 ]]; then
 		echo "Exiting player.sh"
+	fi
+
+	if [ $soundCmdPID != -1 ]; then
+		echo "killing soundCmd at PID : $soundCmdPID"
+		kill -9 $soundCmdPID
 	fi
 
 	if [[ -e $tempDir ]]; then
@@ -637,7 +644,9 @@ play_midi () {
 	local song="`echo $1 | fromHtmlEnc`"
 	local cmd="$timidity \"$song\" > /dev/null 2> /dev/null"
 	#eval $timidity "$song" > /dev/null 2> /dev/null
-	eval "$cmd"
+	eval "$cmd" &
+	soundCmdPID=$!
+	wait $soundCmdPID
 }
 
 play_digital () {
@@ -645,14 +654,18 @@ play_digital () {
 	local cmd="$alsaplayer \"$song\" > /dev/null 2> /dev/null"
 	#eval $alsaplayer "$song" > /dev/null 2> /dev/null
 	[[ $debugging == 1 ]] && echo "Playing song with command : $cmd" >> $debugPath
-	eval "$cmd"
+	eval "$cmd" &
+	soundCmdPID=$!
+	wait $soundCmdPID
 }
 
 play_mod () {
 	local song="`echo $1 | fromHtmlEnc`"
 	local cmd="$mikmod \"$song\" > /dev/null 2> /dev/null"
 	#eval $mikmod "$song" > /dev/null 2> /dev/null
-	eval "$cmd"
+	eval "$cmd" &
+	soundCmdPID=$!
+	wait $soundCmdPID
 }
 
 play_video () {
@@ -663,7 +676,9 @@ play_video () {
 		local cmd="$mplayer \"$song\" >> $debugPath 2>&1"
 	fi
 	#eval $mplayer "$song" > /dev/null 2> /dev/null
-	eval "$cmd"
+	eval "$cmd" &
+	soundCmdPID=$!
+	wait $soundCmdPID
 }
 
 announce () {
