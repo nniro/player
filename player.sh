@@ -578,7 +578,7 @@ progExit () {
 	fi
 
 	if [ $soundCmdPID != -1 ]; then
-		echo "killing soundCmd at PID : $soundCmdPID"
+		#echo "killing soundCmd at PID : $soundCmdPID"
 		kill -9 $soundCmdPID
 	fi
 
@@ -588,7 +588,7 @@ progExit () {
 	exit 0
 }
 
-trap progExit SIGINT
+trap progExit SIGINT SIGTERM
 
 randomnizePlaylist () {
 	typeset -a array
@@ -644,7 +644,7 @@ play_midi () {
 	local song="`echo $1 | fromHtmlEnc`"
 	local cmd="$timidity \"$song\" > /dev/null 2> /dev/null"
 	#eval $timidity "$song" > /dev/null 2> /dev/null
-	eval "$cmd" &
+	eval "$cmd &"
 	soundCmdPID=$!
 	wait $soundCmdPID
 }
@@ -654,7 +654,7 @@ play_digital () {
 	local cmd="$alsaplayer \"$song\" > /dev/null 2> /dev/null"
 	#eval $alsaplayer "$song" > /dev/null 2> /dev/null
 	[[ $debugging == 1 ]] && echo "Playing song with command : $cmd" >> $debugPath
-	eval "$cmd" &
+	eval "$cmd &"
 	soundCmdPID=$!
 	wait $soundCmdPID
 }
@@ -663,7 +663,7 @@ play_mod () {
 	local song="`echo $1 | fromHtmlEnc`"
 	local cmd="$mikmod \"$song\" > /dev/null 2> /dev/null"
 	#eval $mikmod "$song" > /dev/null 2> /dev/null
-	eval "$cmd" &
+	eval "$cmd &"
 	soundCmdPID=$!
 	wait $soundCmdPID
 }
@@ -676,7 +676,7 @@ play_video () {
 		local cmd="$mplayer \"$song\" >> $debugPath 2>&1"
 	fi
 	#eval $mplayer "$song" > /dev/null 2> /dev/null
-	eval "$cmd" &
+	eval "$cmd &"
 	soundCmdPID=$!
 	wait $soundCmdPID
 }
