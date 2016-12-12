@@ -56,8 +56,8 @@ function mkTuple() {
 	# using '@' characters to support the content even if they contain commas inside of them
 	# now if the content contains '@', we are screwed so we encode both '@' characters and ','
 	# characters.
-	first=`echo $1 | sed -e 's/\@/%40/g; s/,/%2c/g'`
-	second=`echo $2 | sed -e 's/\@/%40/g; s/,/%2c/g'`
+	first=`echo "$1" | sed -e 's/\@/%40/g; s/,/%2c/g'`
+	second=`echo "$2" | sed -e 's/\@/%40/g; s/,/%2c/g'`
 	echo "(@$first@,@$second@)"
 }
 
@@ -391,11 +391,11 @@ getComprFile () {
 loopFiles () {
 	[[ $debugging == 1 ]] && echo "HEREIN" >> $debugPath
 	local _result=""
-	local recursive=$1
+	local recursive="$1"
 
 	shift 1
 
-	local fixedInput="`echo $* | sed -e 's/, /,/g'`"
+	local fixedInput="`echo \"$*\" | sed -e 's/, /,/g'`"
 	local tuple="`sep \",\" \"\$fixedInput\"`"
 	local current=""
 	local rest=""
@@ -414,7 +414,7 @@ loopFiles () {
 
 		[[ $debugging == 1 ]] && echo "loopFiles processed file path : $processed" >> $debugPath
 
-		local _result="$_result `preparePath \"$processed\" $recursive`"
+		local _result="$_result `preparePath \"$processed\" \"$recursive\"`"
 
 		if [[ "$rest" == "" ]]; then
 			[[ $debugging == 1 ]] && echo "broke free from loopFiles" >> $debugPath
@@ -430,7 +430,7 @@ loopFiles () {
 
 preparePath () {
 	local recursive=$2
-	local tmp="`echo $1 | fromHtmlEnc`"
+	local tmp="`echo \"$1\" | fromHtmlEnc`"
 	[[ $debugging == 1 ]] && echo "preparePath (recursive == $recurse) for : $tmp" >> $debugPath
 	case `echo "$tmp" | sed -e 's/.*\(tar.gz\|tar.bz2\|tar.xz\|zip\|rar\)/\1/'` in
 
@@ -443,12 +443,12 @@ preparePath () {
 			if [[ -d "$tmp" ]] && [[ "$recursive" == "1" ]]; then
 				# recursive version
 				[[ $debugging == 1 ]] && echo "About to recurse the directory : $tmp" >> $debugPath
-				local result="`loopFiles $recursive \`ls -dm \"$tmp\"/*\``"
+				local result="`loopFiles \"$recursive\" \"\`ls -dm \"$tmp\"/*\`\"`"
 				#local result="`loopFiles $recursive $tmp/*`"
 				#loopFiles "$2" $tmp/*
 			elif [[ ! -d "$tmp" ]]; then
 				[[ $debugging == 1 ]] && echo "preparePath : treating as file : $tmp" >> $debugPath
-			       	local result="`echo $1 | toHtmlEnc`"
+			       	local result="`echo \"$1\" | toHtmlEnc`"
 			else
 				[[ $debugging == 1 ]] && echo "preparePath : Unknown file type : $tmp" >> $debugPath
 			fi
@@ -545,7 +545,7 @@ while [[ 1 -eq 1 ]]; do
 				saidPreparingPlaylist=1
 			fi
 
-			music[$[${#music[@]} + 1]]=`preparePath $1 $recurse`
+			music[$[${#music[@]} + 1]]="`preparePath \"$1\" $recurse`"
 
 			[[ $debugging == 1 ]] && echo "file added to the list" >> $debugPath
 		;;
