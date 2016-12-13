@@ -37,6 +37,14 @@ alsaplayer=$mplayer
 
 debugging=0
 
+testMode=0
+
+# if the program name is ./runUnitTest.sh then we go in test mode.
+# test mode permits an external script to include this script and test it's functions.
+if [ $0 = "./runUnitTest.sh" ]; then
+	testMode=1
+fi
+
 case "`readlink -f /proc/$$/exe`" in
 	*zsh)
 		# we need arrays to start at 0 in zsh
@@ -493,7 +501,7 @@ while [[ 1 -eq 1 ]]; do
 	shift 1
 done
 
-if [[ ${#music[@]} == 0 ]]; then
+[ $testMode = 0 ] && if [[ ${#music[@]} == 0 ]]; then
 	showHelp
 	exit 0
 fi
@@ -739,9 +747,10 @@ playPlaylist () {
 }
 
 
-message "There are ${#music[@]} songs loaded" $quiet
+[ $testMode = 0 ] && message "There are ${#music[@]} songs loaded" $quiet
 
-[[ $debugging == 1 ]] && echo "Loaded the files : \"${music[@]}\"" >> $debugPath
+[ $testMode = 0 ] && [[ $debugging == 1 ]] && echo "Loaded the files : \"${music[@]}\"" >> $debugPath
 
+[ $testMode = 0 ] && playPlaylist ${music[@]}
 
-progExit
+[ $testMode = 0 ] && progExit
