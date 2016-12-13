@@ -388,46 +388,6 @@ getComprFile () {
 	echo ${tempDir}/${comp[2]}
 }
 
-loopFiles () {
-	[[ $debugging == 1 ]] && echo "HEREIN" >> $debugPath
-	local _result=""
-	local recursive="$1"
-
-	shift 1
-
-	local fixedInput="`echo \"$*\" | sed -e 's/, /,/g'`"
-	local tuple="`sep \",\" \"\$fixedInput\"`"
-	local current=""
-	local rest=""
-	while [[ 1 -eq 1 ]]; do
-		current="`fst \"$tuple\"`"
-		rest="`snd \"$tuple\"`"
-		[[ $debugging == 1 ]] && echo "Loop cycle from loopFiles : \"$*\" -> [$tuple] (\"$current\",\"$rest\")" >> $debugPath
-
-
-		#echo "$1"
-
-		# fixes files containing spaces until they
-		# are later converted to %20
-		#local processed="`echo \"$1\" | sed -e 's/\([^\\]\) /\1\\ /g'`"
-		local processed="`echo \"$current\" | sed -e 's/ /\\ /g'`"
-
-		[[ $debugging == 1 ]] && echo "loopFiles processed file path : $processed" >> $debugPath
-
-		local _result="$_result `preparePath \"$processed\" \"$recursive\"`"
-
-		if [[ "$rest" == "" ]]; then
-			[[ $debugging == 1 ]] && echo "broke free from loopFiles" >> $debugPath
-			break
-		fi
-
-		#shift 1
-		tuple="`sep \",\" \"$rest\"`"
-	done
-
-	echo $_result
-}
-
 preparePath () {
 	local recursive=$2
 	local tmp="`echo \"$1\" | fromHtmlEnc`"
@@ -443,9 +403,8 @@ preparePath () {
 			if [[ -d "$tmp" ]] && [[ "$recursive" == "1" ]]; then
 				# recursive version
 				[[ $debugging == 1 ]] && echo "About to recurse the directory : $tmp" >> $debugPath
-				local result="`loopFiles \"$recursive\" \"\`ls -dm \"$tmp\"/*\`\"`"
-				#local result="`loopFiles $recursive $tmp/*`"
-				#loopFiles "$2" $tmp/*
+
+				result="`find \"$tmp/\" -type f -or -type l | toHtmlEnc`" # | read -r -d '' fResult
 			elif [[ ! -d "$tmp" ]]; then
 				[[ $debugging == 1 ]] && echo "preparePath : treating as file : $tmp" >> $debugPath
 			       	local result="`echo \"$1\" | toHtmlEnc`"
