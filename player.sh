@@ -270,9 +270,15 @@ loopFilesComp () {
 
 	myTuple="`mkTuple \" \" \"$files\"`"
 	[[ $debugging == 1 ]] && echo "convertion tuple : [isTuple? `isTuple \"$myTuple\"`] \"$myTuple\"" >> $debugPath
-	while [[ "`snd \"$myTuple\"`" != "" ]]; do
+	while [[ "`fst \"$myTuple\"`" != "" ]]; do
 		x="`fst \"$myTuple\"`"
 		xs="`snd \"$myTuple\"`"
+
+		# if the file finishes with a '/', we assume it's a directory name and we drop it
+		if [[ "`echo \"$x\" | sed -ne '/^.*%2f$/ p'`" != "" ]]; then
+			myTuple="`sep \" \" \"$xs\"`"
+			continue
+		fi
 
 		if [[ "$x" != " " ]] && [[ "$x" != "" ]]; then
 			if [[ "$files2" != "" ]]; then
