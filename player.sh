@@ -468,11 +468,16 @@ while [[ 1 -eq 1 ]]; do
 		;;
 
 		*)
+			curPath="`printf "%s" "$1" | fromHtmlEnc`"
 			if [[ "$saidPreparingPlaylist" == "" ]]; then
 				message "Preparing playlist..." $quiet
 				saidPreparingPlaylist=1
 			fi
 
+			if [[ ! -e "$curPath" ]]; then
+				echo "Error: File or path not found : $curPath"
+				exit 1
+			fi
 			music[$[${#music[@]} + 1]]="`preparePath \"$1\" $recurse`"
 
 			[[ $debugging == 1 ]] && echo "file added to the list" >> $debugPath
