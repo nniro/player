@@ -47,11 +47,6 @@ case "`readlink -f /proc/$$/exe`" in
 	;;
 esac
 
-#echo $SHELL
-
-# this tells us exactly which shell is running this script
-#readlink -f /proc/$$/exe
-
 function mkTuple() {
 	# using '@' characters to support the content even if they contain commas inside of them
 	# now if the content contains '@', we are screwed so we encode both '@' characters and ','
@@ -87,16 +82,6 @@ function snd() {
 	echo "$1" | sed -e 's/(\@[^\@]*\@,\@\([^\@]*\)\@)/\1/' | sed -e 's/%40/\@/g; s/%2c/,/g'
 }
 
-#nonTuple="1 2"
-#tuple="`mkTuple 1 2`"
-#trickyTuple="`mkTuple \"@@@334oeuou734872uaoeu,87,6,576,765,\" \"@ZALBAR,@@@BAR,@\"`"
-#spacedTuple="`mkTuple \"1 2\" \"3 4 5 6\"`"
-
-#echo "isTuple a real tuple? `isTuple $tuple`"
-#echo "isTuple a non tuple? `isTuple $nonTuple`"
-#echo "isTuple a tricky tuple? `isTuple $trickyTuple` fst is : `fst $trickyTuple` and snd is `snd $trickyTuple`"
-#echo "isTuple a spaced tuple? `isTuple \"$spacedTuple\"` fst is : `fst \"$spacedTuple\"` and snd is `snd \"$spacedTuple\"`"
-
 function sep() {
 	if [[ "$2" == "" ]]; then
 		local sepChr=" "
@@ -105,24 +90,8 @@ function sep() {
 		local sepChr="$1"
 		local data="$2"
 	fi
-	#mkTuple `echo "$data" | sed -e "s/^\([^$sepChr]*\)$sepChr\(.*\)$/\"\1\" \"\2\"/"`
-	#echo "$data" | sed -e "s/^\([^$sepChr]*\)$sepChr\(.*\)$/\"\1\" \"\2\"/"
 	mkTuple "`echo \"$data\" | sed -e \"s/^\([^$sepChr]*\)\($sepChr\)\(.*\)$/\1/\"`" "`echo \"$data\" | sed -ne \"s/^\([^$sepChr]*\)$sepChr\(.*\)$/\2/ p\"`"
 }
-
-#result=`sep "," "Diablo 2 LOD, B2 C, D3 E, FF444 Z B e"`
-#result=`sep "," "Diablo 2 LOD, Diablo15YA.part1.rar, Diablo2_LOD.rar, test.zsh, test.zsh~"`
-#result=`sep "," "test.zsh~"`
-#result=`sep "," ""`
-
-#echo "sep tests :"
-
-#echo $result
-
-#fst "$result"
-#snd "$result"
-
-#exit 0
 
 # speech synthesizer program
 speak="sh $HOME/bin/speak.sh --stdout"
@@ -644,15 +613,7 @@ announce () {
 	local song=$1
 	local stype=$2
 
-	#if [[ $quiet == 1 ]]; then
-	#	echo now playing $stype music file : `echo "$song" | fromHtmlEnc`
-	#fi
-
 	message "now playing $stype music file : `echo \"$song\" | fromHtmlEnc | basename2 -`" $quiet &
-	#if [[ $espeak == 1 ]]; then
-		#$speak "now playing $stype music file : `echo "$song" | fromHtmlEnc | basename2 -`" > $tempDir/message.wav
-		#$alsaplayer $tempDir/message.wav 2> /dev/null 1> /dev/null &
-	#fi
 }
 
 # pretty path for compressed directories (harmless for other formats)
@@ -730,10 +691,6 @@ play_song () {
 
 		*)
 			message "unhandled music format : `basename $songPath | fromHtmlEnc`" $quiet
-			#echo unhandled music format : `echo $songPath`
-			#if [[ $espeak == 1 ]]; then
-			#	$speak "unhandled music format : `basename $songPath | fromHtmlEnc`"
-			#fi
 		;;
 	esac
 
@@ -775,15 +732,5 @@ message "There are ${#music[@]} songs loaded" $quiet
 
 [[ $debugging == 1 ]] && echo "Loaded the files : \"${music[@]}\"" >> $debugPath
 
-playPlaylist ${music[@]}
-#typeset -a testList
-#testList=(1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50)
-#testList=(0=1 1=2 2=3 3=4)
-#testList[0]=1
-#testList[2]=2
-#testList[3]=3
-#testList[4]=4
-#randomnizePlaylist2 ${testList[@]}
-#echo ${testList[0]}
 
 progExit
