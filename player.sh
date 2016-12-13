@@ -51,13 +51,13 @@ function mkTuple() {
 	# using '@' characters to support the content even if they contain commas inside of them
 	# now if the content contains '@', we are screwed so we encode both '@' characters and ','
 	# characters.
-	first=`echo "$1" | sed -e 's/\@/%40/g; s/,/%2c/g'`
-	second=`echo "$2" | sed -e 's/\@/%40/g; s/,/%2c/g'`
+	first="`echo \"$1\" | sed -e 's/\@/%40/g; s/,/%2c/g'`"
+	second="`echo \"$2\" | sed -e 's/\@/%40/g; s/,/%2c/g'`"
 	echo "(@$first@,@$second@)"
 }
 
 function isTuple() {
-	if [[ "`echo \"$1\" | sed -e 's/^(\@[^\@]*\@,\@[^\@]*\@)$//'`" == "" ]]; then
+	if [[ "`echo \"$1\" | sed -e 's/^(\@[^@]*\@,\@[^@]*\@)$//'`" == "" ]]; then
 		echo 1
 	else
 		echo 0
@@ -79,7 +79,7 @@ function snd() {
 		echo "Input is not a tuple"
 		exit 1
 	fi
-	echo "$1" | sed -e 's/(\@[^\@]*\@,\@\([^\@]*\)\@)/\1/' | sed -e 's/%40/\@/g; s/%2c/,/g'
+	echo "$1" | sed -e 's/(\@[^@]*\@,\@\([^@]*\)\@)/\1/' | sed -e 's/%40/\@/g; s/%2c/,/g'
 }
 
 function sep() {
