@@ -45,7 +45,7 @@ if [ $0 = "./runUnitTest.sh" ]; then
 	testMode=1
 fi
 
-case "`readlink -f /proc/$$/exe`" in
+case "$(readlink -f /proc/$$/exe)" in
 	*zsh)
 		# we need arrays to start at 0 in zsh
 		setopt ksharrays
@@ -59,13 +59,13 @@ function mkTuple() {
 	# using '@' characters to support the content even if they contain commas inside of them
 	# now if the content contains '@', we are screwed so we encode both '@' characters and ','
 	# characters.
-	first="`echo \"$1\" | sed -e 's/\@/%40/g; s/,/%2c/g'`"
-	second="`echo \"$2\" | sed -e 's/\@/%40/g; s/,/%2c/g'`"
+	first="$(echo "$1" | sed -e 's/\@/%40/g; s/,/%2c/g')"
+	second="$(echo "$2" | sed -e 's/\@/%40/g; s/,/%2c/g')"
 	echo "(@$first@,@$second@)"
 }
 
 function isTuple() {
-	if [[ "`echo \"$1\" | sed -e 's/^(\@[^@]*\@,\@[^@]*\@)$//'`" == "" ]]; then
+	if [[ "$(echo "$1" | sed -e 's/^(\@[^@]*\@,\@[^@]*\@)$//')" == "" ]]; then
 		echo 1
 	else
 		echo 0
@@ -74,7 +74,7 @@ function isTuple() {
 
 # output the first element of a tuple
 function fst() {
-	if [[ `isTuple "$1"` == 0 ]]; then
+	if [[ $(isTuple "$1") == 0 ]]; then
 		echo "Input is not a tuple"
 		exit 1
 	fi
@@ -83,7 +83,7 @@ function fst() {
 
 # output the second element of a tuple
 function snd() {
-	if [[ `isTuple "$1"` == 0 ]]; then
+	if [[ $(isTuple "$1") == 0 ]]; then
 		echo "Input is not a tuple"
 		exit 1
 	fi
@@ -98,7 +98,7 @@ function sep() {
 		local sepChr="$1"
 		local data="$2"
 	fi
-	mkTuple "`echo \"$data\" | sed -e \"s/^\([^$sepChr]*\)\($sepChr\)\(.*\)$/\1/\"`" "`echo \"$data\" | sed -ne \"s/^\([^$sepChr]*\)$sepChr\(.*\)$/\2/ p\"`"
+	mkTuple "$(echo "$data" | sed -e "s/^\([^$sepChr]*\)\($sepChr\)\(.*\)$/\1/")" "$(echo "$data" | sed -ne "s/^\([^$sepChr]*\)$sepChr\(.*\)$/\2/ p")"
 }
 
 # speech synthesizer program
@@ -121,12 +121,12 @@ fixArg () {
 	local result=""
 	while [[ "$1" != "" ]]; do
 		tmp=""
-		result="$result `echo \"$1\" | toHtmlEnc | sed 's/=/ /g'`"
+		result="$result $(echo $1 | toHtmlEnc | sed 's/=/ /g')"
 		shift 1
 	done
 	echo $result
 }
-set -- `fixArg "$@"`
+set -- $(fixArg "$@")
 
 tempDir="/tmp/player.sh"
 debugPath="/tmp/player.sh.debug"
@@ -165,13 +165,13 @@ showHelp () {
 basename2 () {
 	local input=$1
 	if [[ "$input" == "-" ]]; then
-		input=`cat /dev/stdin`
+		input=$(cat /dev/stdin)
 	fi
 	basename "$input"
 }
 
 fixSpaces () {
-	echo "`echo "$1" | sed 's/\([^\\]\) /\1\\\\ /g'`"
+	echo "$(echo "$1" | sed 's/\([^\\]\) /\1\\\\ /g')"
 }
 
 # loop files in a compressed file
@@ -180,7 +180,7 @@ loopFilesComp () {
 
 	shift 1
 
-	local file="`echo $1 | fromHtmlEnc | sed -e 's/^ \(.*\)/\1/'`"
+	local file="$(echo $1 | fromHtmlEnc | sed -e 's/^ \(.*\)/\1/')"
 
 	local files=""
 	local cPath=""
@@ -188,37 +188,37 @@ loopFilesComp () {
 
 	[[ $debugging == 1 ]] && echo "archive checker : $file" >> $debugPath
 
-	case `echo $1 | fromHtmlEnc | sed -e 's/.*\(tar.gz\|tar.bz2\|tar.xz\|zip\|rar\)/\1/'` in
+	case $(echo $1 | fromHtmlEnc | sed -e 's/.*\(tar.gz\|tar.bz2\|tar.xz\|zip\|rar\)/\1/') in
 		tar.gz) #echo a bzip compressed file
-			local files="`gzip -cd \"$file\" | tar -t | toHtmlEnc`"
-			local cPath="`dirname \"$file\"`"
-			local comprF="`basename \"$file\"`"
+			local files="$(gzip -cd "$file" | tar -t | toHtmlEnc)"
+			local cPath="$(dirname "$file")"
+			local comprF="$(basename "$file")"
 		;;
 
 		tar.bz2) #echo a bzip2 compressed file
-			local files="`bzip2 -cdk \"$file\" | tar -t | toHtmlEnc`"
-			local cPath="`dirname \"$file\"`"
-			local comprF="`basename \"$file\"`"
+			local files="$(bzip2 -cdk "$file" | tar -t | toHtmlEnc)"
+			local cPath="$(dirname "$file")"
+			local comprF="$(basename "$file")"
 		;;
 
 		tar.xz) #echo a xz compressed file
-			local files="`xz -cdk \"$file\" | tar -t | toHtmlEnc`"
-			local cPath="`dirname \"$file\"`"
-			local comprF="`basename \"$file\"`"
+			local files="$(xz -cdk "$file" | tar -t | toHtmlEnc)"
+			local cPath="$(dirname "$file")"
+			local comprF="$(basename "$file")"
 		;;
 
 		zip) #echo a zip compressed file
 			[[ $debugging == 1 ]] && echo "archive is zip compressed" >> $debugPath
-			local files="`unzip -qq -l \"$file\" | sed -e 's/^ *[^ ]* *[^ ]* *[^ ]* *//' | toHtmlEnc`"
-			local cPath="`dirname \"$file\"`"
-			local comprF="`basename \"$file\"`"
+			local files="$(unzip -qq -l "$file" | sed -e 's/^ *[^ ]* *[^ ]* *[^ ]* *//' | toHtmlEnc)"
+			local cPath="$(dirname "$file")"
+			local comprF="$(basename "$file")"
 		;;
 
 		rar) #echo a rar compressed file
 			[[ $debugging == 1 ]] && echo "archive is rar compressed" >> $debugPath
-			local files="`unrar vb \"$file\" | toHtmlEnc`"
-			local cPath="`dirname \"$file\"`"
-			local comprF="`basename \"$file\"`"
+			local files="$(unrar vb "$file" | toHtmlEnc)"
+			local cPath="$(dirname "$file")"
+			local comprF="$(basename "$file")"
 			[[ $debugging == 1 ]] && echo "After getting all the content of the compressed file" >> $debugPath
 		;;
 
@@ -228,8 +228,8 @@ loopFilesComp () {
 		;;
 	esac
 
-	local cPath="`echo $cPath | toHtmlEnc`"
-	local comprF="`echo $comprF | toHtmlEnc`"
+	local cPath="$(echo $cPath | toHtmlEnc)"
+	local comprF="$(echo $comprF | toHtmlEnc)"
 
 	# first step : filter only directories
 	#echo $files | sed '/.*\/$/ \! d'
@@ -276,15 +276,15 @@ loopFilesComp () {
 		#fi
 	#done
 
-	myTuple="`mkTuple \" \" \"$files\"`"
-	[[ $debugging == 1 ]] && echo "convertion tuple : [isTuple? `isTuple \"$myTuple\"`] \"$myTuple\"" >> $debugPath
-	while [[ "`fst \"$myTuple\"`" != "" ]]; do
-		x="`fst \"$myTuple\"`"
-		xs="`snd \"$myTuple\"`"
+	myTuple="$(mkTuple " " "$files")"
+	[[ $debugging == 1 ]] && echo "convertion tuple : [isTuple? $(isTuple "$myTuple")] \"$myTuple\"" >> $debugPath
+	while [[ "$(fst "$myTuple")" != "" ]]; do
+		x="$(fst "$myTuple")"
+		xs="$(snd "$myTuple")"
 
 		# if the file finishes with a '/', we assume it's a directory name and we drop it
-		if [[ "`echo \"$x\" | sed -ne '/^.*%2f$/ p'`" != "" ]]; then
-			myTuple="`sep \" \" \"$xs\"`"
+		if [[ "$(echo "$x" | sed -ne '/^.*%2f$/ p')" != "" ]]; then
+			myTuple="$(sep " " "$xs")"
 			continue
 		fi
 
@@ -296,7 +296,7 @@ loopFilesComp () {
 			fi
 		fi
 
-		myTuple="`sep \" \" \"$xs\"`"
+		myTuple="$(sep " " "$xs")"
 		[[ $debugging == 1 ]] && echo "loop data : x: \"$x\" xs: \"$xs\"" >> $debugPath
 		[[ $debugging == 1 ]] && echo "Current tuple : \"$myTuple\"" >> $debugPath
 		[[ $debugging == 1 ]] && echo "Current files2 result : $files2" >> $debugPath
@@ -312,17 +312,17 @@ getComprFile () {
 	fi
 
 	typeset -a comp
-	comp=(`echo $1 | sed 's/^@// ; s/@/ /g'`)
+	comp=($(echo $1 | sed 's/^@// ; s/@/ /g'))
 
-	if [[ "${comp[2]}" != "1" ]] && [[ "`echo ${comp[2]} | sed 's/.*\/$/1/'`" == "1" ]]; then
+	if [[ "${comp[2]}" != "1" ]] && [[ "$(echo ${comp[2]} | sed 's/.*\/$/1/')" == "1" ]]; then
 		# this is a directory, we don't handle that
 		exit 0
 	fi
 
 
 	local opwd="$PWD"
-	comp[0]="`echo ${comp[0]} | fromHtmlEnc`"
-	comp[1]="`echo ${comp[1]} | fromHtmlEnc`"
+	comp[0]="$(echo ${comp[0]} | fromHtmlEnc)"
+	comp[1]="$(echo ${comp[1]} | fromHtmlEnc)"
 
 	# handles both relative and absolute paths
 	if [[ "${comp[0]:0:1}" == "/" ]]; then
@@ -333,9 +333,9 @@ getComprFile () {
 
 	cd $tempDir
 
-	local tmp="`echo ${comp[2]} | fromHtmlEnc`"
+	local tmp="$(echo ${comp[2]} | fromHtmlEnc)"
 
-	case `echo ${comp[1]} | sed 's/.*\(tar.gz\|tar.bz2\|tar.xz\|zip\|rar\)/\1/'` in
+	case $(echo ${comp[1]} | sed 's/.*\(tar.gz\|tar.bz2\|tar.xz\|zip\|rar\)/\1/') in
 		tar.gz) #echo a bzip compressed file
 			tar -zxf "${base}${comp[0]}${comp[1]}" "$tmp"
 		;;
@@ -351,13 +351,13 @@ getComprFile () {
 		zip) #echo a zip compressed file
 			# fixes the `[' character for which unzip is
 			# particularly picky (note : only `[', not `]')
-			local tmp="`echo $tmp | sed 's/\[/\\\[/g'`"
+			local tmp="$(echo $tmp | sed 's/\[/\\\[/g')"
 			unzip -qq "${base}${comp[0]}${comp[1]}" "$tmp"
 		;;
 
 		rar) #echo a rar compressed file
 			# special format, files are not preceded by ./
-			tmp2="`echo $tmp | sed 's/^\.\///'`"
+			tmp2="$(echo $tmp | sed 's/^\.\///')"
 			unrar x "${base}${comp[0]}${comp[1]}" "$tmp2" > /dev/null 2> /dev/null
 		;;
 
@@ -373,13 +373,13 @@ getComprFile () {
 
 preparePath () {
 	local recursive=$2
-	local tmp="`echo \"$1\" | fromHtmlEnc`"
+	local tmp="$(echo "$1" | fromHtmlEnc)"
 	[[ $debugging == 1 ]] && echo "preparePath (recursive == $recurse) for : $tmp" >> $debugPath
-	case `echo "$tmp" | sed -e 's/.*\(tar.gz\|tar.bz2\|tar.xz\|zip\|rar\)/\1/'` in
+	case $(echo "$tmp" | sed -e 's/.*\(tar.gz\|tar.bz2\|tar.xz\|zip\|rar\)/\1/') in
 
 		tar.gz|tar.bz2|tar.xz|zip|rar)
 			[[ $debugging == 1 ]] && echo "About to recurse compressed file : $tmp" >> $debugPath
-			local result="`loopFilesComp \"$2\" \"$1\"`"
+			local result="$(loopFilesComp "$2" "$1")"
 		;;
 
 		*)
@@ -387,10 +387,10 @@ preparePath () {
 				# recursive version
 				[[ $debugging == 1 ]] && echo "About to recurse the directory : $tmp" >> $debugPath
 
-				result="`find \"$tmp/\" -type f -or -type l | toHtmlEnc`" # | read -r -d '' fResult
+				result="$(find "$tmp/" -type f -or -type l | toHtmlEnc)" # | read -r -d '' fResult
 			elif [[ ! -d "$tmp" ]]; then
 				[[ $debugging == 1 ]] && echo "preparePath : treating as file : $tmp" >> $debugPath
-			       	local result="`echo \"$1\" | toHtmlEnc`"
+				local result="$(echo "$1" | toHtmlEnc)"
 			else
 				[[ $debugging == 1 ]] && echo "preparePath : Unknown file type : $tmp" >> $debugPath
 			fi
@@ -402,7 +402,7 @@ preparePath () {
 
 #preparePath "$1" 1
 
-#houba=`preparePath $1`
+#houba=$(preparePath $1)
 
 #echo Houba : $houba
 
@@ -470,7 +470,7 @@ while [[ 1 -eq 1 ]]; do
 
 		-f|--filter)
 			shift 1
-			filter=`echo $1 | fromHtmlEnc`
+			filter=$(echo $1 | fromHtmlEnc)
 		;;
 
 		-q|--quiet)
@@ -482,7 +482,7 @@ while [[ 1 -eq 1 ]]; do
 		;;
 
 		*)
-			curPath="`printf "%s" "$1" | fromHtmlEnc`"
+			curPath="$(printf "%s" "$1" | fromHtmlEnc)"
 			if [[ "$saidPreparingPlaylist" == "" ]]; then
 				message "Preparing playlist..." $quiet
 				saidPreparingPlaylist=1
@@ -492,7 +492,7 @@ while [[ 1 -eq 1 ]]; do
 				echo "Error: File or path not found : $curPath"
 				exit 1
 			fi
-			music[$[${#music[@]} + 1]]="`preparePath \"$1\" $recurse`"
+			music[$[${#music[@]} + 1]]="$(preparePath "$1" $recurse)"
 
 			[[ $debugging == 1 ]] && echo "file added to the list" >> $debugPath
 		;;
@@ -509,10 +509,10 @@ fi
 #echo $music
 #exit 0
 
-music=(`echo ${music[@]} | sed -e 's/\"//g'`)
+music=($(echo ${music[@]} | sed -e 's/\"//g'))
 
 if [[ "$filter" != "" ]]; then
-	music=`echo ${music[@]} | sed 's/ /\n/g' | sed -n "/$filter/! p"`
+	music=($(echo ${music[@]} | sed 's/ /\n/g' | sed -n "/$filter/! p"))
 fi
 #echo filtered $music
 #exit 0
@@ -588,7 +588,7 @@ randomnizePlaylist2 () {
 }
 
 play_midi () {
-	local song="`echo $1 | fromHtmlEnc`"
+	local song="$(echo $1 | fromHtmlEnc)"
 	local cmd="$timidity \"$song\" > /dev/null 2> /dev/null"
 	#eval $timidity "$song" > /dev/null 2> /dev/null
 	eval "$cmd &"
@@ -597,7 +597,7 @@ play_midi () {
 }
 
 play_digital () {
-	local song="`echo $1 | fromHtmlEnc`"
+	local song="$(echo $1 | fromHtmlEnc)"
 	local cmd="$alsaplayer \"$song\" > /dev/null 2> /dev/null"
 	#eval $alsaplayer "$song" > /dev/null 2> /dev/null
 	[[ $debugging == 1 ]] && echo "Playing song with command : $cmd" >> $debugPath
@@ -607,7 +607,7 @@ play_digital () {
 }
 
 play_mod () {
-	local song="`echo $1 | fromHtmlEnc`"
+	local song="$(echo $1 | fromHtmlEnc)"
 	local cmd="$mikmod \"$song\" > /dev/null 2> /dev/null"
 	#eval $mikmod "$song" > /dev/null 2> /dev/null
 	eval "$cmd &"
@@ -616,7 +616,7 @@ play_mod () {
 }
 
 play_video () {
-	local song="`echo $1 | fromHtmlEnc`"
+	local song="$(echo $1 | fromHtmlEnc)"
 	if [ $debugging = 0 ]; then
 		local cmd="$mplayer \"$song\" > /dev/null 2> /dev/null"
 	else
@@ -632,15 +632,15 @@ announce () {
 	local song=$1
 	local stype=$2
 
-	message "now playing $stype music file : `echo \"$song\" | fromHtmlEnc | basename2 -`" $quiet &
+	message "now playing $stype music file : $(echo "$song" | fromHtmlEnc | basename2 -)" $quiet &
 }
 
 # pretty path for compressed directories (harmless for other formats)
 prettyPath () {
-	echo `echo $1 | sed 's/^@\(.*\)@\(.*\)@\(.*\)$/\1\2\/\3/'`
+	echo $(echo $1 | sed 's/^@\(.*\)@\(.*\)@\(.*\)$/\1\2\/\3/')
 }
 
-#echo `prettyPath "/home/nik_89/houba.tar.gz/something.mp3"`
+#echo $(prettyPath "/home/nik_89/houba.tar.gz/something.mp3")
 
 #exit 0
 
@@ -657,24 +657,24 @@ play_song () {
 	[[ $debugging == 1 ]] && echo "play_song : $song" >> $debugPath
 
 	# compressed directory support :D
-	if [[ "$song" != "1" ]] && [[ "`echo $song | sed -e 's/^@.*/1/'`" == "1" ]]; then
+	if [[ "$song" != "1" ]] && [[ "$(echo $song | sed -e 's/^@.*/1/')" == "1" ]]; then
 		local inComp=1
-		local songPath="`prettyPath \"$song\"`"
-		local song="`getComprFile \"$song\"`"
+		local songPath="$(prettyPath "$song")"
+		local song="$(getComprFile "$song")"
 	fi
 
 	# check for compression extention
-	case `echo $song | sed 's/[^\.]*\.//g'` in
+	case $(echo $song | sed 's/[^\.]*\.//g') in
 		gz|bz2|zip)
 			local compressed=1
-			local song1=`echo $song | sed -e 's/\(.*\)\(\.gz\|\.bz2\|\.zip\)$/\1/'`
+			local song1=$(echo $song | sed -e 's/\(.*\)\(\.gz\|\.bz2\|\.zip\)$/\1/')
 		;;
 
 		*) local song1=$song
 		;;
 	esac
 
-	case `echo $song1 | fromHtmlEnc | sed 's/[^\.]*\.//g' | sed 's/\(.*\)/\L\1\E/'` in
+	case $(echo $song1 | fromHtmlEnc | sed 's/[^\.]*\.//g' | sed 's/\(.*\)/\L\1\E/') in
 		mp3|ogg|wav|flac)
 			if [[ $compressed -eq 1 ]]; then
 				message "compressed file format not supported" $quiet
@@ -709,16 +709,16 @@ play_song () {
 		;;
 
 		*)
-			message "unhandled music format : `basename $songPath | fromHtmlEnc`" $quiet
+			message "unhandled music format : $(basename $songPath | fromHtmlEnc)" $quiet
 		;;
 	esac
 
 	# the temporary file is deleted
 	if [[ $inComp == 1 ]]; then
-		if [[ -d "`echo $song | fromHtmlEnc`" ]]; then
-			rm -Rf "`echo $song | fromHtmlEnc`"
+		if [[ -d "$(echo $song | fromHtmlEnc)" ]]; then
+			rm -Rf "$(echo $song | fromHtmlEnc)"
 		else
-			rm -f "`echo $song | fromHtmlEnc`"
+			rm -f "$(echo $song | fromHtmlEnc)"
 		fi
 	fi
 
@@ -726,14 +726,14 @@ play_song () {
 }
 
 playPlaylist () {
-	if [[ "`echo $@ | sed 's/^ *$//'`" == "" ]]; then
+	if [[ "$(echo "$@" | sed 's/^ *$//')" == "" ]]; then
 		message "Playlist is empty, maybe you forgot to use the recursive (-r or --recursive) argument?" $quiet
 		exit 1
 	fi
 	typeset -a playlist
 
 	if [[ $shuffle == 1 ]]; then
-		playlist=(`randomnizePlaylist2 $@`)
+		playlist=($(randomnizePlaylist2 $@))
 	else
 		playlist=("$@")
 	fi
