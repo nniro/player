@@ -387,7 +387,11 @@ preparePath () {
 				# recursive version
 				[[ $debugging == 1 ]] && echo "About to recurse the directory : $tmp" >> $debugPath
 
-				result="$(find "$tmp/" -type f -or -type l | toHtmlEnc)" # | read -r -d '' fResult
+				local tmp2="$(find "$tmp/" -type f -or -type l | toHtmlEnc)" # | read -r -d '' fResult
+				[[ $debugging == 1 ]] && echo "recurse into : $tmp2" >> $debugPath
+				for elem in $tmp2; do
+					local result="$result $(preparePath "$elem" $recursive)"
+				done
 			elif [[ ! -d "$tmp" ]]; then
 				[[ $debugging == 1 ]] && echo "preparePath : treating as file : $tmp" >> $debugPath
 				local result="$(echo "$1" | toHtmlEnc)"
