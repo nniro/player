@@ -121,7 +121,7 @@ fixArg () {
 	local result=""
 	while [[ "$1" != "" ]]; do
 		tmp=""
-		result="$result $(echo $1 | toHtmlEnc | sed 's/=/ /g')"
+		result="$result $(printf "%s" "$1" | toHtmlEnc | sed 's/=/ /g')"
 		shift 1
 	done
 	echo $result
