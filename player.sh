@@ -492,6 +492,14 @@ while [[ 1 -eq 1 ]]; do
 				saidPreparingPlaylist=1
 			fi
 
+			if [[ "$(echo $curPath | sed -e 's/^@.*/1/')" == "1" ]]; then
+				homeEnc="$(printf "%s" "$HOME" | toHtmlEnc)"
+				music[$[${#music[@]} + 1]]=$(echo "$1" | sed -e "s@%7e@$homeEnc@")
+				echo ${music[@]}
+				shift 1
+				continue
+			fi
+
 			if [[ ! -e "$curPath" ]]; then
 				echo "Error: File or path not found : $curPath"
 				exit 1
@@ -510,7 +518,7 @@ done
 	exit 0
 fi
 
-#echo $music
+#echo ${music[@]}
 #exit 0
 
 music=($(echo ${music[@]} | sed -e 's/\"//g'))
@@ -518,7 +526,8 @@ music=($(echo ${music[@]} | sed -e 's/\"//g'))
 if [[ "$filter" != "" ]]; then
 	music=($(echo ${music[@]} | sed 's/ /\n/g' | sed -n "/$filter/! p"))
 fi
-#echo filtered $music
+#echo filtered ${music[@]}
+
 #exit 0
 
 soundCmdPID=-1
