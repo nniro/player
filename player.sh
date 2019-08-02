@@ -27,7 +27,7 @@
 #timidity="timidity"
 timidity="aplaymidi -p 17"
 # video/movie player
-mplayer="mplayer -vo null -quiet"
+mplayer="ffmpeg -f alsa default -i"
 # amiga modules music player
 #mikmod="mikmod -p 0 -q"
 mikmod="timidity"
