@@ -564,7 +564,7 @@ progExit () {
 	exit 0
 }
 
-trap progExit SIGINT SIGTERM
+trap progExit INT TERM
 
 play_midi () {
 	local song="$(echo $1 | fromHtmlEnc)"
