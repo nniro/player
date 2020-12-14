@@ -2,7 +2,7 @@
 
 #The MIT License (MIT)
 #
-#Copyright (c) 2010-2018 Nicholas Niro
+#Copyright (c) 2010-present Nicholas Niro
 #
 #Permission is hereby granted, free of charge, to any person obtaining a copy
 #of this software and associated documentation files (the "Software"), to deal
