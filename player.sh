@@ -582,56 +582,6 @@ progExit () {
 
 trap progExit SIGINT SIGTERM
 
-randomnizePlaylist () {
-	typeset -a array
-	array=($@)
-	local len=${#array[@]}
-	typeset -a result
-
-	local i=0
-	while [[ $i -lt $len ]]; do
-		local pick=$((RANDOM % $len))
-
-		while [[ 1 -ne 2 ]]; do
-			if [[ ! ${result[$pick]} ]]; then
-				result[$pick]=${array[$i]}
-				break
-		       fi
-			local pick=$(((pick + 1) % $len))
-		done
-
-		local i=$((i + 1))
-	done
-
-	echo ${result[@]}
-}
-
-randomnizePlaylist2 () {
-	#typeset -a array
-	#array=($@)
-	#local len=${#array[@]}
-	typeset -a result
-	result=($@)
-	local len=${#result[@]}
-
-	local i=0
-	while [[ $i -lt $len ]]; do
-		local pick=$((RANDOM % $len))
-		[[ $debugging == 1 ]] && echo "switching #$pick [${result[$pick]}] with $i [${result[$i]}]" >> $debugPath
-
-		# switch the 2
-		local temp=${result[$pick]}
-		result[$pick]=${result[$i]}
-		result[$i]=$temp
-
-		[[ $debugging == 1 ]] && echo "switch result : #$pick [${result[$pick]}] and $i [${result[$i]}]" >> $debugPath
-
-		local i=$((i + 1))
-	done
-
-	echo ${result[@]}
-}
-
 play_midi () {
 	local song="$(echo $1 | fromHtmlEnc)"
 	local cmd="$timidity \"$song\" > /dev/null 2> /dev/null"
@@ -778,7 +728,7 @@ playPlaylist () {
 	typeset -a playlist
 
 	if [[ $shuffle == 1 ]]; then
-		playlist=($(randomnizePlaylist2 $@))
+		playlist=($(echo "$@" | sed -e 's/ /\n/g' | shuf))
 	else
 		playlist=("$@")
 	fi
