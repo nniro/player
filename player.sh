@@ -35,13 +35,17 @@ mikmod="timidity"
 #alsaplayer="alsaplayer -i text -q"
 alsaplayer=$mplayer
 
+# speech synthesizer program
+speak="sh $HOME/bin/speak.sh --stdout"
+
 debugging=0
 
 testMode=0
 
+#echo $0
 # if the program name is ./runUnitTest.sh then we go in test mode.
 # test mode permits an external script to include this script and test it's functions.
-if [ $0 = "./runUnitTest.sh" ]; then
+if [ $0 = "./runUnitTest.sh" ] || [ $0 = "runUnitTest.sh" ]; then
 	testMode=1
 fi
 
@@ -101,9 +105,6 @@ function sep() {
 	mkTuple "$(echo "$data" | sed -e "s/^\([^$sepChr]*\)\($sepChr\)\(.*\)$/\1/")" "$(echo "$data" | sed -ne "s/^\([^$sepChr]*\)$sepChr\(.*\)$/\2/ p")"
 }
 
-# speech synthesizer program
-speak="sh $HOME/bin/speak.sh --stdout"
-
 # the two following functions are generated from createConv.sh
 toHtmlEnc () {
 sed -e "s/ /%20/g; s/\!/%21/g; s/\"/%22/g; s/#/%23/g; s/\\$/%24/g; s/&/%26/g; s/'/%27/g; s/(/%28/g; s/)/%29/g; s/\*/%2a/g; s/+/%2b/g; s/\,/%2c/g; s/\./%2e/g; s/\//%2f/g;" -e "s/:/%3a/g; s/;/%3b/g; s/</%3c/g; s/>/%3e/g; s/?/%3f/g;" -e "s/\[/%5b/g; s/\\\\/%5c/g; s/\]/%5d/g; s/\^/%5e/g; s/_/%5f/g; s/\`/%60/g;" -e "s/{/%7b/g; s/|/%7c/g; s/}/%7d/g; s/~/%7e/g; s//%7f/g;"
@@ -126,12 +127,15 @@ fixArg () {
 	done
 	echo $result
 }
+
 set -- $(fixArg "$@")
 
 tempDir="/tmp/player.sh"
 debugPath="/tmp/player.sh.debug"
 
 [[ $debugging == 1 ]] && if [[ -e $debugPath ]]; then rm $debugPath; fi && touch $debugPath
+
+[[ $debugging == 1 ]] && echo "arguments : $@" >> $debugPath
 
 showHelp () {
 	printf "player.sh [OPTIONS] ... [FILES]\n"
@@ -635,7 +639,7 @@ prettyPath () {
 	echo $(echo $1 | sed 's/^@\(.*\)@\(.*\)@\(.*\)$/\1\2\/\3/')
 }
 
-#echo $(prettyPath "/home/nik_89/houba.tar.gz/something.mp3")
+#echo $(prettyPath "/home/nik_89/compressedFile.tar.gz/something.mp3")
 
 #exit 0
 
