@@ -49,7 +49,7 @@ if [ $0 = "./runUnitTest.sh" ] || [ $0 = "runUnitTest.sh" ]; then
 	testMode=1
 fi
 
-function mkTuple() {
+mkTuple() {
 	# using '@' characters to support the content even if they contain commas inside of them
 	# now if the content contains '@', we are screwed so we encode both '@' characters and ','
 	# characters.
@@ -58,7 +58,7 @@ function mkTuple() {
 	echo "(@$first@,@$second@)"
 }
 
-function isTuple() {
+isTuple() {
 	if [[ "$(echo "$1" | sed -e 's/^(\@[^@]*\@,\@[^@]*\@)$//')" == "" ]]; then
 		echo 1
 	else
@@ -67,7 +67,7 @@ function isTuple() {
 }
 
 # output the first element of a tuple
-function fst() {
+fst() {
 	if [[ $(isTuple "$1") == 0 ]]; then
 		echo "Input is not a tuple"
 		exit 1
@@ -76,7 +76,7 @@ function fst() {
 }
 
 # output the second element of a tuple
-function snd() {
+snd() {
 	if [[ $(isTuple "$1") == 0 ]]; then
 		echo "Input is not a tuple"
 		exit 1
@@ -84,7 +84,7 @@ function snd() {
 	echo "$1" | sed -e 's/(\@[^@]*\@,\@\([^@]*\)\@)/\1/' | sed -e 's/%40/\@/g; s/%2c/,/g'
 }
 
-function sep() {
+sep() {
 	if [[ "$2" == "" ]]; then
 		local sepChr=" "
 		local data="$1"
@@ -329,7 +329,7 @@ getComprFile () {
 	set -- "$(echo $1 | fromHtmlEnc)" "$(echo $2 | fromHtmlEnc)" "$(echo $3 | fromHtmlEnc)"
 
 	# handles both relative and absolute paths
-	if [[ "${1:0:1}" == "/" ]]; then
+	if echo $1 | grep -q '^/'; then
 		local base=""
 	else
 		local base="$opwd/"
