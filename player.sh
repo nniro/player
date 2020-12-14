@@ -229,6 +229,10 @@ loopFilesComp () {
 		;;
 	esac
 
+	if [ "$files" = "" ]; then
+		return
+	fi
+
 	local cPath="$(echo $cPath | toHtmlEnc)"
 	local comprF="$(echo $comprF | toHtmlEnc)"
 
@@ -303,7 +307,7 @@ loopFilesComp () {
 		[[ $debugging == 1 ]] && echo "Current files2 result : $files2" >> $debugPath
 	done
 
-	[[ $debugging == 1 ]] && echo "archive conv result : $files2" >> $debugPath
+	[[ $debugging == 3 ]] && echo "archive conv result : $files2" >> $debugPath
 	echo $files2
 }
 
@@ -407,9 +411,7 @@ preparePath () {
 
 #preparePath "$1" 1
 
-#houba=$(preparePath $1)
 
-#echo Houba : $houba
 
 #exit 0
 
@@ -428,7 +430,7 @@ message () {
 	local message="$1"
 	local noOutput=$2
 	if [[ $quiet == 0 ]] || [[ "$noOutput" == "" ]]; then
-		echo "$message"
+		echo "$message" >&2
 	fi
 
 	if [[ $espeak == 1 ]]; then
@@ -501,7 +503,6 @@ while [[ 1 -eq 1 ]]; do
 			if [[ "$(echo $curPath | sed -e 's/^@.*/1/')" == "1" ]]; then
 				homeEnc="$(printf "%s" "$HOME" | toHtmlEnc)"
 				music[$[${#music[@]} + 1]]=$(echo "$1" | sed -e "s@%7e@$homeEnc@")
-				echo ${music[@]}
 				shift 1
 				continue
 			fi
@@ -560,7 +561,7 @@ progExit () {
 
 	if [ $soundCmdPID != -1 ]; then
 		#echo "killing soundCmd at PID : $soundCmdPID"
-		kill -9 $soundCmdPID
+		kill -9 $soundCmdPID 2> /dev/null
 	fi
 
 	if [[ -e $tempDir ]]; then
