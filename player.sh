@@ -189,7 +189,7 @@ loopFilesComp () {
 
 	[[ $debugging == 1 ]] && echo "archive checker : $file" >> $debugPath
 
-	case $(echo $1 | fromHtmlEnc | sed -e 's/.*\(tar.gz\|tar.bz2\|tar.xz\|zip\|rar\)/\1/') in
+	case $(echo $1 | fromHtmlEnc | sed -e 's/.*\(tar.gz\|tar.bz2\|tar.xz\|tar.zstd\|tar.zst\|zip\|rar\)/\1/') in
 		tar.gz) #echo a bzip compressed file
 			local files="$(gzip -cd "$file" | tar -t | toHtmlEnc)"
 			local cPath="$(dirname "$file")"
@@ -204,6 +204,13 @@ loopFilesComp () {
 
 		tar.xz) #echo a xz compressed file
 			local files="$(xz -cdk "$file" | tar -t | toHtmlEnc)"
+			local cPath="$(dirname "$file")"
+			local comprF="$(basename "$file")"
+		;;
+
+		tar.zst)
+		tar.zstd)
+			local files="$(zstd -cdk "$file" | tar -t | toHtmlEnc)"
 			local cPath="$(dirname "$file")"
 			local comprF="$(basename "$file")"
 		;;
