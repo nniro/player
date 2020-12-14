@@ -643,10 +643,10 @@ play_song () {
 	case $(echo $song | sed 's/[^\.]*\.//g') in
 		gz|bz2|zip)
 			local compressed=1
-			local song1=$(echo $song | sed -e 's/\(.*\)\(\.gz\|\.bz2\|\.zip\)$/\1/')
+			local song1="$(echo $song | sed -e 's/\(.*\)\(\.gz\|\.bz2\|\.zip\)$/\1/')"
 		;;
 
-		*) local song1=$song
+		*) local song1="$song"
 		;;
 	esac
 
