@@ -145,7 +145,8 @@ showHelp () {
 	printf "	-r,--recursive	recursively handle directories\n"
 	printf "	-y,--speak	use eSpeak to transmit messages\n"
 	printf "	-f,--filter	regex for files to exclude\n"
-	printf "	-q,--quiet	quiet mode\n"
+	printf "	-q,--quiet	limits the output to stdout\n"
+	printf "	-g,--genPlaylist generate a playlist in file format\n"
 	echo
 	printf "	A special format can be used to access specific\n"
 	printf "	files inside compressed files.\n"
@@ -421,6 +422,7 @@ recurse=0
 espeak=0
 filter=""
 quiet=0
+genPlaylist=0
 
 message () {
 	local message="$1"
@@ -477,6 +479,10 @@ while [[ 1 -eq 1 ]]; do
 			filter=$(echo $1 | fromHtmlEnc)
 		;;
 
+		-g|--genPlaylist)
+			genPlaylist=1
+		;;
+
 		-q|--quiet)
 			quiet=1
 		;;
@@ -512,6 +518,21 @@ while [[ 1 -eq 1 ]]; do
 
 	shift 1
 done
+
+if [ $genPlaylist = 1 ]; then
+	echo "#! /bin/sh"
+	echo ""
+	echo "playlist=\$(cat - << EOF"
+	for cMusic in ${music[@]}; do
+		echo $cMusic | fromHtmlEnc
+	done
+	echo "EOF"
+	echo ")"
+	echo ""
+	echo "sh player.sh \$@ \$playlist"
+
+	exit 0
+fi
 
 [ $testMode = 0 ] && if [[ ${#music[@]} == 0 ]]; then
 	showHelp
