@@ -530,7 +530,9 @@ if [ $genPlaylist = 1 ]; then
 	echo "EOF"
 	echo ")"
 	echo ""
-	echo "sh player.sh \$@ \$playlist"
+	echo "IFS=\""
+	echo "\""
+	echo "player.sh \$@ \$playlist"
 
 	exit 0
 fi
