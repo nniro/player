@@ -49,16 +49,6 @@ if [ $0 = "./runUnitTest.sh" ] || [ $0 = "runUnitTest.sh" ]; then
 	testMode=1
 fi
 
-case "$(readlink -f /proc/$$/exe)" in
-	*zsh)
-		# we need arrays to start at 0 in zsh
-		setopt ksharrays
-	;;
-
-	*)
-	;;
-esac
-
 function mkTuple() {
 	# using '@' characters to support the content even if they contain commas inside of them
 	# now if the content contains '@', we are screwed so we encode both '@' characters and ','
@@ -136,6 +126,10 @@ debugPath="/tmp/player.sh.debug"
 [[ $debugging == 1 ]] && if [[ -e $debugPath ]]; then rm $debugPath; fi && touch $debugPath
 
 [[ $debugging == 1 ]] && echo "arguments : $@" >> $debugPath
+
+elemCount() {
+	echo $#
+}
 
 showHelp () {
 	printf "player.sh [OPTIONS] ... [FILES]\n"
@@ -322,25 +316,20 @@ loopFilesComp () {
 }
 
 getComprFile () {
-	if [[ ! -e $tempDir ]]; then
-		mkdir $tempDir
-	fi
+	[ ! -e $tempDir ] && mkdir $tempDir
 
-	typeset -a comp
-	comp=($(echo $1 | sed 's/^@// ; s/@/ /g'))
+	set -- $(echo $1 | sed -e 's/^@// ; s/@/ /g')
 
-	if [[ "${comp[2]}" != "1" ]] && [[ "$(echo ${comp[2]} | sed 's/.*\/$/1/')" == "1" ]]; then
+	if [[ "$3" != "1" ]] && [[ "$(echo $3 | sed 's/.*\/$/1/')" == "1" ]]; then
 		# this is a directory, we don't handle that
 		exit 0
 	fi
 
-
 	local opwd="$PWD"
-	comp[0]="$(echo ${comp[0]} | fromHtmlEnc)"
-	comp[1]="$(echo ${comp[1]} | fromHtmlEnc)"
+	set -- "$(echo $1 | fromHtmlEnc)" "$(echo $2 | fromHtmlEnc)" "$(echo $3 | fromHtmlEnc)"
 
 	# handles both relative and absolute paths
-	if [[ "${comp[0]:0:1}" == "/" ]]; then
+	if [[ "${1:0:1}" == "/" ]]; then
 		local base=""
 	else
 		local base="$opwd/"
@@ -348,36 +337,34 @@ getComprFile () {
 
 	cd $tempDir
 
-	local tmp="$(echo ${comp[2]} | fromHtmlEnc)"
-
-	case $(echo ${comp[1]} | sed 's/.*\(tar.gz\|tar.bz2\|tar.xz\|tar.zstd\|tar.zst\|zip\|rar\)/\1/') in
+	case $(echo $2 | sed 's/.*\(tar.gz\|tar.bz2\|tar.xz\|tar.zstd\|tar.zst\|zip\|rar\)/\1/') in
 		tar.gz) #echo a bzip compressed file
-			tar -zxf "${base}${comp[0]}${comp[1]}" "$tmp"
+			tar -zxf "${base}${1}${2}" "$3"
 		;;
 
 		tar.bz2) #echo a bzip2 compressed file
-			tar -jxf "${base}${comp[0]}${comp[1]}" "$tmp"
+			tar -jxf "${base}${1}${2}" "$3"
 		;;
 
 		tar.xz) #echo a xz compressed file
-			xz -cdk "${base}${comp[0]}${comp[1]}" | tar -xf /dev/stdin "$tmp"
+			xz -cdk "${base}${1}${2}" | tar -xf /dev/stdin "$3"
 		;;
 
 		tar.zst*)
-			zstd -cdk "${base}${comp[0]}${comp[1]}" 2>/dev/null | tar -xf /dev/stdin "$tmp"
+			zstd -cdk "${base}${1}${2}" 2>/dev/null | tar -xf /dev/stdin "$3"
 		;;
 
 		zip) #echo a zip compressed file
 			# fixes the `[' character for which unzip is
 			# particularly picky (note : only `[', not `]')
-			local tmp="$(echo $tmp | sed 's/\[/\\\[/g')"
-			unzip -qq "${base}${comp[0]}${comp[1]}" "$tmp"
+			local tmp="$(echo "$3" | sed 's/\[/\\\[/g')"
+			unzip -qq "${base}${1}${2}" "$tmp"
 		;;
 
 		rar) #echo a rar compressed file
 			# special format, files are not preceded by ./
-			tmp2="$(echo $tmp | sed 's/^\.\///')"
-			unrar x "${base}${comp[0]}${comp[1]}" "$tmp2" > /dev/null 2> /dev/null
+			tmp="$(echo "$3" | sed 's/^\.\///')"
+			unrar x "${base}${1}${2}" "$tmp" > /dev/null 2> /dev/null
 		;;
 
 		*) #echo not a compressed directory file
@@ -387,7 +374,7 @@ getComprFile () {
 
 	cd "$opwd"
 
-	echo ${tempDir}/${comp[2]}
+	echo ${tempDir}/$3
 }
 
 preparePath () {
@@ -429,9 +416,7 @@ preparePath () {
 
 #exit 0
 
-typeset -a music
-
-#music=()
+music=""
 shuffle=0
 loop=0
 recurse=0
@@ -516,7 +501,7 @@ while [[ 1 -eq 1 ]]; do
 
 			if [[ "$(echo $curPath | sed -e 's/^@.*/1/')" == "1" ]]; then
 				homeEnc="$(printf "%s" "$HOME" | toHtmlEnc)"
-				music[$[${#music[@]} + 1]]=$(echo "$1" | sed -e "s@%7e@$homeEnc@")
+				music="$music $(echo "$1" | sed -e "s@%7e@$homeEnc@")"
 				shift 1
 				continue
 			fi
@@ -525,7 +510,7 @@ while [[ 1 -eq 1 ]]; do
 				echo "Error: File or path not found : $curPath"
 				exit 1
 			fi
-			music[$[${#music[@]} + 1]]="$(preparePath "$1" $recurse)"
+			music="$music $(preparePath "$1" $recurse)"
 
 			[[ $debugging == 1 ]] && echo "file added to the list" >> $debugPath
 		;;
@@ -538,7 +523,8 @@ if [ $genPlaylist = 1 ]; then
 	echo "#! /bin/sh"
 	echo ""
 	echo "playlist=\$(cat - << EOF"
-	for cMusic in ${music[@]}; do
+	IFS=" "
+	for cMusic in $music; do
 		echo $cMusic | fromHtmlEnc
 	done
 	echo "EOF"
@@ -549,22 +535,16 @@ if [ $genPlaylist = 1 ]; then
 	exit 0
 fi
 
-[ $testMode = 0 ] && if [[ ${#music[@]} == 0 ]]; then
+[ $testMode = 0 ] && if [[ $(elemCount $music) == 0 ]]; then
 	showHelp
 	exit 0
 fi
 
-#echo ${music[@]}
-#exit 0
-
-music=($(echo ${music[@]} | sed -e 's/\"//g'))
+music="$(echo $music | sed -e 's/\"//g')"
 
 if [[ "$filter" != "" ]]; then
-	music=($(echo ${music[@]} | sed 's/ /\n/g' | sed -n "/$filter/! p"))
+	music="$(echo $music | sed 's/ /\n/g' | sed -n "/$filter/! p")"
 fi
-#echo filtered ${music[@]}
-
-#exit 0
 
 soundCmdPID=-1
 
@@ -644,11 +624,8 @@ prettyPath () {
 #exit 0
 
 play_song () {
-	#echo "play_song: count $#"
 	local song=$1
-	shift 1
-	typeset -a list
-	list=($@)
+	shift
 	local songPath=$song
 	local compressed=0
 	local inComp=0 # inside a compressed file
@@ -721,35 +698,33 @@ play_song () {
 		fi
 	fi
 
-	[[ ! ${#list[@]} == 0 ]] && play_song ${list[@]}
+	[ "$1" != "" ] && play_song $@
 }
 
 playPlaylist () {
-	if [[ "$(echo "$@" | sed 's/^ *$//')" == "" ]]; then
-		message "Playlist is empty, maybe you forgot to use the recursive (-r or --recursive) argument?" $quiet
-		exit 1
-	fi
-	typeset -a playlist
+	local playlist=""
+	while :; do
+		if [[ "$(echo "$@" | sed 's/^ *$//')" == "" ]]; then
+			message "Playlist is empty, maybe you forgot to use the recursive (-r or --recursive) argument?" $quiet
+			exit 1
+		fi
 
-	if [[ $shuffle == 1 ]]; then
-		playlist=($(echo "$@" | sed -e 's/ /\n/g' | shuf))
-	else
-		playlist=("$@")
-	fi
+		if [[ $shuffle == 1 ]]; then
+			playlist="$(echo "$@" | sed -e 's/ /\n/g' | shuf)"
+		else
+			playlist="$@"
+		fi
 
-	#echo "current playlist count : ${#playlist[@]} -- $#"
-	play_song ${playlist[@]}
+		play_song $playlist
 
-	if [[ $loop == 1 ]]; then
-		playPlaylist ${playlist[@]}
-	fi
+		[ $loop == 0 ] && break
+	done
 }
 
+[ $testMode = 0 ] && message "There are $(elemCount $music) songs loaded" $quiet
 
-[ $testMode = 0 ] && message "There are ${#music[@]} songs loaded" $quiet
+[ $testMode = 0 ] && [[ $debugging == 1 ]] && echo "Loaded the files : \"$music\"" >> $debugPath
 
-[ $testMode = 0 ] && [[ $debugging == 1 ]] && echo "Loaded the files : \"${music[@]}\"" >> $debugPath
-
-[ $testMode = 0 ] && playPlaylist ${music[@]}
+[ $testMode = 0 ] && playPlaylist $music
 
 [ $testMode = 0 ] && progExit
