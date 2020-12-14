@@ -208,9 +208,8 @@ loopFilesComp () {
 			local comprF="$(basename "$file")"
 		;;
 
-		tar.zst)
-		tar.zstd)
-			local files="$(zstd -cdk "$file" | tar -t | toHtmlEnc)"
+		tar.zst*)
+			local files="$(zstd -cdk "$file" 2>/dev/null | tar -t | toHtmlEnc)"
 			local cPath="$(dirname "$file")"
 			local comprF="$(basename "$file")"
 		;;
@@ -347,7 +346,7 @@ getComprFile () {
 
 	local tmp="$(echo ${comp[2]} | fromHtmlEnc)"
 
-	case $(echo ${comp[1]} | sed 's/.*\(tar.gz\|tar.bz2\|tar.xz\|zip\|rar\)/\1/') in
+	case $(echo ${comp[1]} | sed 's/.*\(tar.gz\|tar.bz2\|tar.xz\|tar.zstd\|tar.zst\|zip\|rar\)/\1/') in
 		tar.gz) #echo a bzip compressed file
 			tar -zxf "${base}${comp[0]}${comp[1]}" "$tmp"
 		;;
@@ -358,6 +357,10 @@ getComprFile () {
 
 		tar.xz) #echo a xz compressed file
 			xz -cdk "${base}${comp[0]}${comp[1]}" | tar -xf /dev/stdin "$tmp"
+		;;
+
+		tar.zst*)
+			zstd -cdk "${base}${comp[0]}${comp[1]}" 2>/dev/null | tar -xf /dev/stdin "$tmp"
 		;;
 
 		zip) #echo a zip compressed file
@@ -387,9 +390,9 @@ preparePath () {
 	local recursive=$2
 	local tmp="$(echo "$1" | fromHtmlEnc)"
 	[[ $debugging == 1 ]] && echo "preparePath (recursive == $recurse) for : $tmp" >> $debugPath
-	case $(echo "$tmp" | sed -e 's/.*\(tar.gz\|tar.bz2\|tar.xz\|zip\|rar\)/\1/') in
+	case $(echo "$tmp" | sed -e 's/.*\(tar.gz\|tar.bz2\|tar.xz\|tar.zstd\|tar.zst\|zip\|rar\)/\1/') in
 
-		tar.gz|tar.bz2|tar.xz|zip|rar)
+		tar.gz|tar.bz2|tar.xz|tar.zstd|tar.zst|zip|rar)
 			[[ $debugging == 1 ]] && echo "About to recurse compressed file : $tmp" >> $debugPath
 			local result="$(loopFilesComp "$2" "$1")"
 		;;
