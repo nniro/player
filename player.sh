@@ -719,7 +719,7 @@ playPlaylist () {
 
 		play_song $playlist
 
-		[ $loop == 0 ] && break
+		[ $loop = 0 ] && break
 	done
 }
 
