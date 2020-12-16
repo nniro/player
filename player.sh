@@ -59,17 +59,14 @@ mkTuple() {
 }
 
 isTuple() {
-	if [[ "$(echo "$1" | sed -e 's/^(\@[^@]*\@,\@[^@]*\@)$//')" == "" ]]; then
-		echo 1
-	else
-		echo 0
-	fi
+	echo "$1" | grep -q "^(\@[^@]*\@,\@[^@]*\@)$"
 }
+
 
 # output the first element of a tuple
 fst() {
-	if [[ $(isTuple "$1") == 0 ]]; then
-		echo "Input is not a tuple"
+	if ! isTuple "$1" ; then
+		echo "Input is not a tuple" >&2
 		exit 1
 	fi
 	echo "$1" | sed -e 's/(\@\(.*\)\@,\@.*\@)/\1/' | sed -e 's/%40/\@/g; s/%2c/,/g'
@@ -77,8 +74,8 @@ fst() {
 
 # output the second element of a tuple
 snd() {
-	if [[ $(isTuple "$1") == 0 ]]; then
-		echo "Input is not a tuple"
+	if ! isTuple "$1" ; then
+		echo "Input is not a tuple" >&2
 		exit 1
 	fi
 	echo "$1" | sed -e 's/(\@[^@]*\@,\@\([^@]*\)\@)/\1/' | sed -e 's/%40/\@/g; s/%2c/,/g'
