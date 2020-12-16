@@ -82,7 +82,7 @@ snd() {
 }
 
 sep() {
-	if [[ "$2" == "" ]]; then
+	if [ "$2" = "" ]; then
 		local sepChr=" "
 		local data="$1"
 	else
@@ -107,7 +107,7 @@ sed -e "s/%20/ /g; s/%21/\!/g; s/%22/\"/g; s/%23/#/g; s/%24/\\$/g; s/%26/\&/g; s
 # and also replaces spaces by %20
 fixArg () {
 	local result=""
-	while [[ "$1" != "" ]]; do
+	while [ "$1" != "" ]; do
 		tmp=""
 		result="$result $(printf "%s" "$1" | toHtmlEnc | sed 's/=/ /g')"
 		shift 1
@@ -120,9 +120,9 @@ set -- $(fixArg "$@")
 tempDir="/tmp/player.sh"
 debugPath="/tmp/player.sh.debug"
 
-[[ $debugging == 1 ]] && if [[ -e $debugPath ]]; then rm $debugPath; fi && touch $debugPath
+[ $debugging = 1 ] && if [ -e $debugPath ]; then rm $debugPath; fi && touch $debugPath
 
-[[ $debugging == 1 ]] && echo "arguments : $@" >> $debugPath
+[ $debugging = 1 ] && echo "arguments : $@" >> $debugPath
 
 elemCount() {
 	echo $#
@@ -160,7 +160,7 @@ showHelp () {
 
 basename2 () {
 	local input=$1
-	if [[ "$input" == "-" ]]; then
+	if [ "$input" = "-" ]; then
 		input=$(cat /dev/stdin)
 	fi
 	basename "$input"
@@ -182,7 +182,7 @@ loopFilesComp () {
 	local cPath=""
 	local comprF=""
 
-	[[ $debugging == 1 ]] && echo "archive checker : $file" >> $debugPath
+	[ $debugging = 1 ] && echo "archive checker : $file" >> $debugPath
 
 	case $(echo $1 | fromHtmlEnc | sed -e 's/.*\(tar.gz\|tar.bz2\|tar.xz\|tar.zstd\|tar.zst\|zip\|rar\)/\1/') in
 		tar.gz) #echo a bzip compressed file
@@ -210,22 +210,22 @@ loopFilesComp () {
 		;;
 
 		zip) #echo a zip compressed file
-			[[ $debugging == 1 ]] && echo "archive is zip compressed" >> $debugPath
+			[ $debugging = 1 ] && echo "archive is zip compressed" >> $debugPath
 			local files="$(unzip -qq -l "$file" | sed -e 's/^ *[^ ]* *[^ ]* *[^ ]* *//' | toHtmlEnc)"
 			local cPath="$(dirname "$file")"
 			local comprF="$(basename "$file")"
 		;;
 
 		rar) #echo a rar compressed file
-			[[ $debugging == 1 ]] && echo "archive is rar compressed" >> $debugPath
+			[ $debugging = 1 ] && echo "archive is rar compressed" >> $debugPath
 			local files="$(unrar vb "$file" | toHtmlEnc)"
 			local cPath="$(dirname "$file")"
 			local comprF="$(basename "$file")"
-			[[ $debugging == 1 ]] && echo "After getting all the content of the compressed file" >> $debugPath
+			[ $debugging = 1 ] && echo "After getting all the content of the compressed file" >> $debugPath
 		;;
 
 		*) #echo not a compressed directory file or unhandled
-			[[ $debugging == 1 ]] && echo "not a compressed directory" >> $debugPath
+			[ $debugging = 1 ] && echo "not a compressed directory" >> $debugPath
 			exit 0
 		;;
 	esac
@@ -248,7 +248,7 @@ loopFilesComp () {
 	# convert the files : remove any newlines
 	files="`echo $files | sed -n -e 'H; $ b e' -e 'b; : e {x; s/\n/ /g ; p ; q}' | sed -e '1 s/^ *\(.*\)/\1/'`"
 
-	[[ $debugging == 1 ]] && echo "files in archive : $files" >> $debugPath
+	[ $debugging = 1 ] && echo "files in archive : $files" >> $debugPath
 
 	# delete all directories (the content of the dirs are kept though)
 	local tmp=""
@@ -260,7 +260,7 @@ loopFilesComp () {
 
 	#local files="$tmp"
 
-	if [[ "$parent_dir" == " " ]] || [[ "$parent_dir" == "" ]]; then
+	if [ "$parent_dir" = " " ] || [ "$parent_dir" = "" ]; then
 		local parent_dir="./"
 	fi
 
@@ -272,9 +272,9 @@ loopFilesComp () {
 	#for i in "$files"; do
 		#local curparrent="`dirname \"\`echo $i | fromHtmlEnc \`\"`/"
 		# echo $i -- $curparrent -- \"$parent_dir\"
-		#if [[ "$recursive" == "1" ]] || [[ "$curparrent" == $parent_dir ]]; then
+		#if [ "$recursive" = "1" ] || [ "$curparrent" = $parent_dir ]; then
 			#echo "-->" $i
-#			if [[ "$files2" != "" ]]; then
+#			if [ "$files2" != "" ]; then
 #				local files2="$files2 @$cPath/@$comprF@$i"
 #			else
 #				local files2="@$cPath/@$comprF@$i"
@@ -283,19 +283,19 @@ loopFilesComp () {
 	#done
 
 	myTuple="$(mkTuple " " "$files")"
-	[[ $debugging == 1 ]] && echo "convertion tuple : [isTuple? $(isTuple "$myTuple")] \"$myTuple\"" >> $debugPath
-	while [[ "$(fst "$myTuple")" != "" ]]; do
+	[ $debugging = 1 ] && echo "convertion tuple : [isTuple? $(isTuple "$myTuple")] \"$myTuple\"" >> $debugPath
+	while [ "$(fst "$myTuple")" != "" ]; do
 		x="$(fst "$myTuple")"
 		xs="$(snd "$myTuple")"
 
 		# if the file finishes with a '/', we assume it's a directory name and we drop it
-		if [[ "$(echo "$x" | sed -ne '/^.*%2f$/ p')" != "" ]]; then
+		if [ "$(echo "$x" | sed -ne '/^.*%2f$/ p')" != "" ]; then
 			myTuple="$(sep " " "$xs")"
 			continue
 		fi
 
-		if [[ "$x" != " " ]] && [[ "$x" != "" ]]; then
-			if [[ "$files2" != "" ]]; then
+		if [ "$x" != " " ] && [ "$x" != "" ]; then
+			if [ "$files2" != "" ]; then
 				local files2="$files2 @$cPath/@$comprF@$x"
 			else
 				local files2="@$cPath/@$comprF@$x"
@@ -303,12 +303,12 @@ loopFilesComp () {
 		fi
 
 		myTuple="$(sep " " "$xs")"
-		[[ $debugging == 1 ]] && echo "loop data : x: \"$x\" xs: \"$xs\"" >> $debugPath
-		[[ $debugging == 1 ]] && echo "Current tuple : \"$myTuple\"" >> $debugPath
-		[[ $debugging == 1 ]] && echo "Current files2 result : $files2" >> $debugPath
+		[ $debugging = 1 ] && echo "loop data : x: \"$x\" xs: \"$xs\"" >> $debugPath
+		[ $debugging = 1 ] && echo "Current tuple : \"$myTuple\"" >> $debugPath
+		[ $debugging = 1 ] && echo "Current files2 result : $files2" >> $debugPath
 	done
 
-	[[ $debugging == 3 ]] && echo "archive conv result : $files2" >> $debugPath
+	[ $debugging = 3 ] && echo "archive conv result : $files2" >> $debugPath
 	echo $files2
 }
 
@@ -317,7 +317,7 @@ getComprFile () {
 
 	set -- $(echo $1 | sed -e 's/^@// ; s/@/ /g')
 
-	if [[ "$3" != "1" ]] && [[ "$(echo $3 | sed 's/.*\/$/1/')" == "1" ]]; then
+	if [ "$3" != "1" ] && [ "$(echo $3 | sed 's/.*\/$/1/')" = "1" ]; then
 		# this is a directory, we don't handle that
 		exit 0
 	fi
@@ -377,29 +377,29 @@ getComprFile () {
 preparePath () {
 	local recursive=$2
 	local tmp="$(echo "$1" | fromHtmlEnc)"
-	[[ $debugging == 1 ]] && echo "preparePath (recursive == $recurse) for : $tmp" >> $debugPath
+	[ $debugging = 1 ] && echo "preparePath (recursive = $recurse) for : $tmp" >> $debugPath
 	case $(echo "$tmp" | sed -e 's/.*\(tar.gz\|tar.bz2\|tar.xz\|tar.zstd\|tar.zst\|zip\|rar\)/\1/') in
 
 		tar.gz|tar.bz2|tar.xz|tar.zstd|tar.zst|zip|rar)
-			[[ $debugging == 1 ]] && echo "About to recurse compressed file : $tmp" >> $debugPath
+			[ $debugging = 1 ] && echo "About to recurse compressed file : $tmp" >> $debugPath
 			local result="$(loopFilesComp "$2" "$1")"
 		;;
 
 		*)
-			if [[ -d "$tmp" ]] && [[ "$recursive" == "1" ]]; then
+			if [ -d "$tmp" ] && [ "$recursive" = "1" ]; then
 				# recursive version
-				[[ $debugging == 1 ]] && echo "About to recurse the directory : $tmp" >> $debugPath
+				[ $debugging = 1 ] && echo "About to recurse the directory : $tmp" >> $debugPath
 
 				local tmp2="$(find "$tmp/" -type f -or -type l | toHtmlEnc)" # | read -r -d '' fResult
-				[[ $debugging == 1 ]] && echo "recurse into : $tmp2" >> $debugPath
+				[ $debugging = 1 ] && echo "recurse into : $tmp2" >> $debugPath
 				for elem in $tmp2; do
 					local result="$result $(preparePath "$elem" $recursive)"
 				done
-			elif [[ ! -d "$tmp" ]]; then
-				[[ $debugging == 1 ]] && echo "preparePath : treating as file : $tmp" >> $debugPath
+			elif [ ! -d "$tmp" ]; then
+				[ $debugging = 1 ] && echo "preparePath : treating as file : $tmp" >> $debugPath
 				local result="$(echo "$1" | toHtmlEnc)"
 			else
-				[[ $debugging == 1 ]] && echo "preparePath : Unknown file type : $tmp" >> $debugPath
+				[ $debugging = 1 ] && echo "preparePath : Unknown file type : $tmp" >> $debugPath
 			fi
 		;;
 	esac
@@ -425,12 +425,12 @@ genPlaylist=0
 message () {
 	local message="$1"
 	local noOutput=$2
-	if [[ $quiet == 0 ]] || [[ "$noOutput" == "" ]]; then
+	if [ $quiet = 0 ] || [ "$noOutput" = "" ]; then
 		echo "$message" >&2
 	fi
 
-	if [[ $espeak == 1 ]]; then
-		if [[ ! -e $tempDir ]]; then
+	if [ $espeak = 1 ]; then
+		if [ ! -e $tempDir ]; then
 			mkdir $tempDir
 		fi
 		local speakCmd="$speak \"$message\" > $tempDir/message.wav"
@@ -442,10 +442,10 @@ message () {
 }
 
 #create music list from input
-while [[ 1 -eq 1 ]]; do
-	[[ $debugging == 1 ]] && echo "Parameter loop cycle" >> $debugPath
-	if [[ "$1" == "" ]]; then
-		[[ $debugging == 1 ]] && echo "broke free of the parameter loop" >> $debugPath
+while [ 1 -eq 1 ]; do
+	[ $debugging = 1 ] && echo "Parameter loop cycle" >> $debugPath
+	if [ "$1" = "" ]; then
+		[ $debugging = 1 ] && echo "broke free of the parameter loop" >> $debugPath
 		break
 	fi
 
@@ -491,25 +491,25 @@ while [[ 1 -eq 1 ]]; do
 
 		*)
 			curPath="$(printf "%s" "$1" | fromHtmlEnc)"
-			if [[ "$saidPreparingPlaylist" == "" ]]; then
+			if [ "$saidPreparingPlaylist" = "" ]; then
 				message "Preparing playlist..." $quiet
 				saidPreparingPlaylist=1
 			fi
 
-			if [[ "$(echo $curPath | sed -e 's/^@.*/1/')" == "1" ]]; then
+			if [ "$(echo $curPath | sed -e 's/^@.*/1/')" = "1" ]; then
 				homeEnc="$(printf "%s" "$HOME" | toHtmlEnc)"
 				music="$music $(echo "$1" | sed -e "s@%7e@$homeEnc@")"
 				shift 1
 				continue
 			fi
 
-			if [[ ! -e "$curPath" ]]; then
+			if [ ! -e "$curPath" ]; then
 				echo "Error: File or path not found : $curPath"
 				exit 1
 			fi
 			music="$music $(preparePath "$1" $recurse)"
 
-			[[ $debugging == 1 ]] && echo "file added to the list" >> $debugPath
+			[ $debugging = 1 ] && echo "file added to the list" >> $debugPath
 		;;
 	esac
 
@@ -534,21 +534,21 @@ if [ $genPlaylist = 1 ]; then
 	exit 0
 fi
 
-[ $testMode = 0 ] && if [[ $(elemCount $music) == 0 ]]; then
+[ $testMode = 0 ] && if [ $(elemCount $music) = 0 ]; then
 	showHelp
 	exit 0
 fi
 
 music="$(echo $music | sed -e 's/\"//g')"
 
-if [[ "$filter" != "" ]]; then
+if [ "$filter" != "" ]; then
 	music="$(echo $music | sed 's/ /\n/g' | sed -n "/$filter/! p")"
 fi
 
 soundCmdPID=-1
 
 progExit () {
-	if [[ $quiet == 0 ]]; then
+	if [ $quiet = 0 ]; then
 		echo "Exiting player.sh"
 	fi
 
@@ -557,7 +557,7 @@ progExit () {
 		kill -9 $soundCmdPID 2> /dev/null
 	fi
 
-	if [[ -e $tempDir ]]; then
+	if [ -e $tempDir ]; then
 		rm -Rf $tempDir
 	fi
 	exit 0
@@ -578,7 +578,7 @@ play_digital () {
 	local song="$(echo $1 | fromHtmlEnc)"
 	local cmd="$alsaplayer \"$song\" > /dev/null 2> /dev/null"
 	#eval $alsaplayer "$song" > /dev/null 2> /dev/null
-	[[ $debugging == 1 ]] && echo "Playing song with command : $cmd" >> $debugPath
+	[ $debugging = 1 ] && echo "Playing song with command : $cmd" >> $debugPath
 	eval "$cmd &"
 	soundCmdPID=$!
 	wait $soundCmdPID
@@ -629,10 +629,10 @@ play_song () {
 	local compressed=0
 	local inComp=0 # inside a compressed file
 
-	[[ $debugging == 1 ]] && echo "play_song : $song" >> $debugPath
+	[ $debugging = 1 ] && echo "play_song : $song" >> $debugPath
 
 	# compressed directory support :D
-	if [[ "$song" != "1" ]] && [[ "$(echo $song | sed -e 's/^@.*/1/')" == "1" ]]; then
+	if [ "$song" != "1" ] && [ "$(echo $song | sed -e 's/^@.*/1/')" = "1" ]; then
 		local inComp=1
 		local songPath="$(prettyPath "$song")"
 		local song="$(getComprFile "$song")"
@@ -651,7 +651,7 @@ play_song () {
 
 	case $(echo $song1 | fromHtmlEnc | sed 's/[^\.]*\.//g' | sed 's/\(.*\)/\L\1\E/') in
 		mp3|ogg|wav|flac|opus|m4a)
-			if [[ $compressed -eq 1 ]]; then
+			if [ $compressed -eq 1 ]; then
 				message "compressed file format not supported" $quiet
 			else
 				announce "$songPath" "digital"
@@ -660,7 +660,7 @@ play_song () {
 		;;
 
 		flv|wma|mp4|webm|mkv)
-			if [[ $compressed -eq 1 ]]; then
+			if [ $compressed -eq 1 ]; then
 				message "compressed file format not supported" $quiet
 			else
 				announce "$songPath" "video"
@@ -669,7 +669,7 @@ play_song () {
 		;;
 
 		mid|midi)
-			if [[ $compressed -eq 1 ]]; then
+			if [ $compressed -eq 1 ]; then
 				message "compressed file format not supported" $quiet
 			else
 				announce "$songPath" "midi"
@@ -689,8 +689,8 @@ play_song () {
 	esac
 
 	# the temporary file is deleted
-	if [[ $inComp == 1 ]]; then
-		if [[ -d "$(echo $song | fromHtmlEnc)" ]]; then
+	if [ $inComp = 1 ]; then
+		if [ -d "$(echo $song | fromHtmlEnc)" ]; then
 			rm -Rf "$(echo $song | fromHtmlEnc)"
 		else
 			rm -f "$(echo $song | fromHtmlEnc)"
@@ -703,12 +703,12 @@ play_song () {
 playPlaylist () {
 	local playlist=""
 	while :; do
-		if [[ "$(echo "$@" | sed 's/^ *$//')" == "" ]]; then
+		if [ "$(echo "$@" | sed 's/^ *$//')" = "" ]; then
 			message "Playlist is empty, maybe you forgot to use the recursive (-r or --recursive) argument?" $quiet
 			exit 1
 		fi
 
-		if [[ $shuffle == 1 ]]; then
+		if [ $shuffle = 1 ]; then
 			playlist="$(echo "$@" | sed -e 's/ /\n/g' | shuf)"
 		else
 			playlist="$@"
@@ -722,7 +722,7 @@ playPlaylist () {
 
 [ $testMode = 0 ] && message "There are $(elemCount $music) songs loaded" $quiet
 
-[ $testMode = 0 ] && [[ $debugging == 1 ]] && echo "Loaded the files : \"$music\"" >> $debugPath
+[ $testMode = 0 ] && [ $debugging = 1 ] && echo "Loaded the files : \"$music\"" >> $debugPath
 
 [ $testMode = 0 ] && playPlaylist $music
 
